@@ -1,0 +1,27 @@
+{
+  "name": "hooter",
+  "version": "0.0.0",
+  "description": "",
+  "author": "Alex Shnayder <alex@shnayder.pro>",
+  "license": "MIT",
+  "main": "src/Hooter.js",
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint src test"
+  },
+  "keywords": [
+  ],
+  "homepage": "https://github.com/alex-shnayder/hooter",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/alex-shnayder/hooter.git"
+  },
+  "bugs": {
+    "url": "https://github.com/alex-shnayder/hooter/issues"
+  },
+  "devDependencies": {
+    "eslint": "^3.11.0",
+    "eslint-plugin-no-empty-blocks": "0.0.2",
+    "hoots": "^0.1.0",
+    "wildcard-store": "^1.0.0"
+  }
+}
