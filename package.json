@@ -1,6 +1,6 @@
 {
   "name": "hooter",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "",
   "author": "Alex Shnayder <alex@shnayder.pro>",
   "license": "MIT",
@@ -8,8 +8,7 @@
   "scripts": {
     "lint": "./node_modules/.bin/eslint src test"
   },
-  "keywords": [
-  ],
+  "keywords": [],
   "homepage": "https://github.com/alex-shnayder/hooter",
   "repository": {
     "type": "git",
