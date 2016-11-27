@@ -1,6 +1,15 @@
 let Store = require('wildcard-store');
 let hoots = require('hoots');
 
+class Event {
+  constructor(type, initialArgs, fn) {
+    this.type = type;
+    this.initialArgs = initialArgs;
+    this.fn = fn;
+    this.time = new Date();
+  }
+}
+
 class Hooter {
   constructor() {
     this.store = new Store();
@@ -19,13 +28,20 @@ class Hooter {
   }
 
   emit(pattern, ...args) {
+    let event = new Event(pattern, args);
+    let eventArgs = [event].concat(args);
     let handlers = this.store.get(pattern);
-    return hoots.run(handlers, args);
+    return hoots.run(handlers, eventArgs);
   }
 
   run(pattern, fn, ...args) {
-    let handlers = this.store.get(pattern).concat(fn);
-    return hoots.run(handlers, args);
+    let event = new Event(pattern, args, fn);
+    let eventArgs = [event].concat(args);
+    let fnWrapper = function fnWrapper(e, ...args) {
+      return fn.apply(this, args);
+    };
+    let handlers = this.store.get(pattern).concat(fnWrapper);
+    return hoots.run(handlers, eventArgs);
   }
 
   listeners(pattern) {
