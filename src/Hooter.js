@@ -1,18 +1,22 @@
 let Store = require('wildcard-store');
-let hoots = require('hoots');
+let Hoots = require('hoots');
 
 class Event {
   constructor(type, initialArgs, fn) {
     this.type = type;
     this.initialArgs = initialArgs;
-    this.fn = fn;
     this.time = new Date();
+
+    if (fn) {
+      this.fn = fn;
+    }
   }
 }
 
 class Hooter {
-  constructor() {
+  constructor(settings) {
     this.store = new Store();
+    this.hoots = settings ? new Hoots(settings) : Hoots;
   }
 
   on(key, fn, limit) {
@@ -31,14 +35,14 @@ class Hooter {
     let event = new Event(pattern, args);
     let eventArgs = [event].concat(args);
     let handlers = this.store.get(pattern);
-    return hoots.run(handlers, ...eventArgs);
+    return this.hoots.run(handlers, ...eventArgs);
   }
 
   emitSync(pattern, ...args) {
     let event = new Event(pattern, args);
     let eventArgs = [event].concat(args);
     let handlers = this.store.get(pattern);
-    return hoots.runSync(handlers, ...eventArgs);
+    return this.hoots.runSync(handlers, ...eventArgs);
   }
 
   run(pattern, fn, ...args) {
@@ -48,7 +52,7 @@ class Hooter {
       return fn.apply(this, args);
     };
     let handlers = this.store.get(pattern).concat(fnWrapper);
-    return hoots.run(handlers, ...eventArgs);
+    return this.hoots.run(handlers, ...eventArgs);
   }
 
   runSync(pattern, fn, ...args) {
@@ -58,7 +62,7 @@ class Hooter {
       return fn.apply(this, args);
     };
     let handlers = this.store.get(pattern).concat(fnWrapper);
-    return hoots.runSync(handlers, ...eventArgs);
+    return this.hoots.runSync(handlers, ...eventArgs);
   }
 
   listeners(pattern) {
