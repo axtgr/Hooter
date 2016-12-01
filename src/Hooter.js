@@ -34,6 +34,13 @@ class Hooter {
     return hoots.run(handlers, ...eventArgs);
   }
 
+  emitSync(pattern, ...args) {
+    let event = new Event(pattern, args);
+    let eventArgs = [event].concat(args);
+    let handlers = this.store.get(pattern);
+    return hoots.runSync(handlers, ...eventArgs);
+  }
+
   run(pattern, fn, ...args) {
     let event = new Event(pattern, args, fn);
     let eventArgs = [event].concat(args);
@@ -42,6 +49,16 @@ class Hooter {
     };
     let handlers = this.store.get(pattern).concat(fnWrapper);
     return hoots.run(handlers, ...eventArgs);
+  }
+
+  runSync(pattern, fn, ...args) {
+    let event = new Event(pattern, args, fn);
+    let eventArgs = [event].concat(args);
+    let fnWrapper = function fnWrapper(e, ...args) {
+      return fn.apply(this, args);
+    };
+    let handlers = this.store.get(pattern).concat(fnWrapper);
+    return hoots.runSync(handlers, ...eventArgs);
   }
 
   listeners(pattern) {
