@@ -31,7 +31,7 @@ class Hooter {
     let event = new Event(pattern, args);
     let eventArgs = [event].concat(args);
     let handlers = this.store.get(pattern);
-    return hoots.run(handlers, eventArgs);
+    return hoots.run(handlers, ...eventArgs);
   }
 
   run(pattern, fn, ...args) {
@@ -41,15 +41,12 @@ class Hooter {
       return fn.apply(this, args);
     };
     let handlers = this.store.get(pattern).concat(fnWrapper);
-    return hoots.run(handlers, eventArgs);
+    return hoots.run(handlers, ...eventArgs);
   }
 
   listeners(pattern) {
     return this.store.get(pattern);
   }
 }
-
-Hooter.next = hoots.next;
-Hooter.dialog = hoots.dialog;
 
 module.exports = Hooter;

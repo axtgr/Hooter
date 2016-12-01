@@ -20,7 +20,7 @@
   "devDependencies": {
     "eslint": "^3.11.0",
     "eslint-plugin-no-empty-blocks": "0.0.2",
-    "hoots": "^0.1.0",
+    "hoots": "^0.3.0",
     "wildcard-store": "^1.0.0"
   }
 }
