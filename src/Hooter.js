@@ -1,10 +1,14 @@
-let Store = require('wildcard-store');
+let { Subject } = require('rxjs');
 let Hoots = require('hoots');
+let Store = require('match-store');
+let match = require('wildcard-match').bind(null, '.');
+
 
 class Event {
-  constructor(type, initialArgs, fn) {
+  constructor(type, transform, args, fn) {
     this.type = type;
-    this.initialArgs = initialArgs;
+    this.transform = !!transform;
+    this.args = args;
     this.time = new Date();
 
     if (fn) {
@@ -13,61 +17,131 @@ class Event {
   }
 }
 
-class Hooter {
+
+class Hooter extends Subject {
   constructor(settings) {
-    this.store = new Store();
+    super();
+
     this.hoots = settings ? new Hoots(settings) : Hoots;
+    this.hookStore = new Store({ match });
   }
 
-  on(key, fn, limit) {
-    return this.store.set(key, fn, limit);
+  lift(operator) {
+    let subject = new DerivedHooter(this, this);
+    subject.operator = operator;
+    return subject;
   }
 
-  once(key, fn) {
-    return this.store.set(key, fn, 1);
+  on(eventType, fn) {
+    if (typeof eventType !== 'string') {
+      throw new TypeError('Event type must be a string');
+    }
+
+    return this.subscribe(e => {
+      if (!e || typeof e !== 'object' || !match(e.type, eventType)) {
+        return;
+      }
+
+      fn(e);
+    });
   }
 
-  off(key, fn) {
-    return this.store.del(key, fn);
+  hook(eventType, fn) {
+    if (typeof eventType !== 'string') {
+      throw new TypeError('Event type must be a string');
+    }
+
+    this.hookStore.put(eventType, fn);
   }
 
-  emit(pattern, ...args) {
-    let event = new Event(pattern, args);
-    let eventArgs = [event].concat(args);
-    let handlers = this.store.get(pattern);
-    return this.hoots.run(handlers, ...eventArgs);
+  emit(eventType, ...args) {
+    if (typeof eventType !== 'string') {
+      throw new TypeError('Event type must be a string');
+    }
+
+    let event = new Event(eventType, false, args);
+    return this.next(event);
   }
 
-  emitSync(pattern, ...args) {
-    let event = new Event(pattern, args);
-    let eventArgs = [event].concat(args);
-    let handlers = this.store.get(pattern);
-    return this.hoots.runSync(handlers, ...eventArgs);
+  run(eventType, fn, ...args) {
+    return this._run(false, eventType, fn, args);
   }
 
-  run(pattern, fn, ...args) {
-    let event = new Event(pattern, args, fn);
-    let eventArgs = [event].concat(args);
-    let fnWrapper = function fnWrapper(e, ...args) {
-      return fn.apply(this, args);
-    };
-    let handlers = this.store.get(pattern).concat(fnWrapper);
-    return this.hoots.run(handlers, ...eventArgs);
+  runSync(eventType, fn, ...args) {
+    return this._run(true, eventType, fn, args);
   }
 
-  runSync(pattern, fn, ...args) {
-    let event = new Event(pattern, args, fn);
-    let eventArgs = [event].concat(args);
-    let fnWrapper = function fnWrapper(e, ...args) {
-      return fn.apply(this, args);
-    };
-    let handlers = this.store.get(pattern).concat(fnWrapper);
-    return this.hoots.runSync(handlers, ...eventArgs);
+  _run(sync, eventType, fn, args) {
+    if (typeof eventType !== 'string') {
+      throw new TypeError('Event type must be a string');
+    }
+
+    let event = new Event(eventType, true, args, fn);
+    let hooks = this.hookStore.get(eventType);
+
+    if (fn) {
+      let wrappedFn = function wrappedFn(event, ...args) {
+        return fn.apply(this, args);
+      };
+      hooks.push(wrappedFn);
+    }
+
+    this.next(event);
+
+    if (sync) {
+      return this.hoots.runSync(hooks, event, ...args);
+    } else {
+      return this.hoots.run(hooks, event, ...args);
+    }
   }
 
-  listeners(pattern) {
-    return this.store.get(pattern);
+  hooks(eventType) {
+    eventType = eventType || '**';
+
+    if (typeof eventType !== 'string') {
+      throw new TypeError('Event type must be a string');
+    }
+
+    return this.hookStore.get(eventType);
   }
 }
+
+
+class DerivedHooter extends Hooter {
+  constructor(destination, source) {
+    super();
+    this.source = source;
+  }
+
+  next(value) {
+    let destination = this.destination;
+    if (destination && destination.next) {
+      destination.next(value);
+    }
+  }
+
+  error(err) {
+    let destination = this.destination;
+    if (destination && destination.error) {
+      this.destination.error(err);
+    }
+  }
+
+  complete() {
+    let destination = this.destination;
+    if (destination && destination.complete) {
+      this.destination.complete();
+    }
+  }
+
+  _subscribe(subscriber) {
+    if (this.source) {
+      return this.source.subscribe(subscriber);
+    } else {
+      return Subscription.EMPTY;
+    }
+  }
+}
+
 
 module.exports = Hooter;
