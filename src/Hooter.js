@@ -50,11 +50,19 @@ class Hooter extends Subject {
   }
 
   process(eventType, ...args) {
-    return process.call(this, eventType, args, false);
+    return process.call(this, eventType, null, args, false);
   }
 
   processSync(eventType, ...args) {
-    return process.call(this, eventType, args, true);
+    return process.call(this, eventType, null, args, true);
+  }
+
+  processWith(eventType, cb, ...args) {
+    return process.call(this, eventType, cb, args, false);
+  }
+
+  processWithSync(eventType, cb, ...args) {
+    return process.call(this, eventType, cb, args, true);
   }
 
   hooks(eventType) {
@@ -69,19 +77,12 @@ class Hooter extends Subject {
 }
 
 
-function process(eventType, args, sync) {
+function process(eventType, cb, args, sync) {
   if (typeof eventType !== 'string') {
     throw new TypeError('Event type must be a string');
   }
 
-  let cb;
-
-  if (typeof args[args.length - 1] === 'function') {
-    // Since this is an internal method,
-    // we assume that `args` is an array that can be safely mutated
-    cb = args.pop();
-  }
-
+  cb = (typeof cb === 'function') ? cb : undefined;
   let event = new Event(eventType, true, args, cb);
   let hooks = this.hookStore.get(eventType);
 
