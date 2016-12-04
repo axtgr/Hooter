@@ -5,14 +5,14 @@ let match = require('wildcard-match').bind(null, '.');
 
 
 class Event {
-  constructor(type, transform, args, fn) {
+  constructor(type, transform, args, cb) {
     this.type = type;
     this.transform = !!transform;
     this.args = args;
     this.time = new Date();
 
-    if (fn) {
-      this.fn = fn;
+    if (cb) {
+      this.cb = cb;
     }
   }
 }
@@ -32,7 +32,7 @@ class Hooter extends Subject {
     return subject;
   }
 
-  on(eventType, fn) {
+  on(eventType, handler) {
     if (typeof eventType !== 'string') {
       throw new TypeError('Event type must be a string');
     }
@@ -42,16 +42,16 @@ class Hooter extends Subject {
         return;
       }
 
-      fn(e);
+      handler(e);
     });
   }
 
-  hook(eventType, fn) {
+  hook(eventType, handler) {
     if (typeof eventType !== 'string') {
       throw new TypeError('Event type must be a string');
     }
 
-    this.hookStore.put(eventType, fn);
+    this.hookStore.put(eventType, handler);
   }
 
   emit(eventType, ...args) {
@@ -76,22 +76,22 @@ class Hooter extends Subject {
       throw new TypeError('Event type must be a string');
     }
 
-    let fn;
+    let cb;
 
     if (typeof args[args.length - 1] === 'function') {
       // Since this is an internal method,
       // we assume that `args` is an array that can be safely mutated
-      fn = args.pop();
+      cb = args.pop();
     }
 
-    let event = new Event(eventType, true, args, fn);
+    let event = new Event(eventType, true, args, cb);
     let hooks = this.hookStore.get(eventType);
 
-    if (fn) {
-      let wrappedFn = function wrappedFn(event, ...args) {
-        return fn.apply(this, args);
+    if (cb) {
+      let wrappedCb = function wrappedCallback(event, ...args) {
+        return cb.apply(this, args);
       };
-      hooks.push(wrappedFn);
+      hooks.push(wrappedCb);
     }
 
     this.next(event);
