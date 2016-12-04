@@ -63,17 +63,25 @@ class Hooter extends Subject {
     return this.next(event);
   }
 
-  run(eventType, fn, ...args) {
-    return this._run(false, eventType, fn, args);
+  process(eventType, ...args) {
+    return this._process(false, eventType, args);
   }
 
-  runSync(eventType, fn, ...args) {
-    return this._run(true, eventType, fn, args);
+  processSync(eventType, ...args) {
+    return this._process(true, eventType, args);
   }
 
-  _run(sync, eventType, fn, args) {
+  _process(sync, eventType, args) {
     if (typeof eventType !== 'string') {
       throw new TypeError('Event type must be a string');
+    }
+
+    let fn;
+
+    if (typeof args[args.length - 1] === 'function') {
+      // Since this is an internal method,
+      // we assume that `args` is an array that can be safely mutated
+      fn = args.pop();
     }
 
     let event = new Event(eventType, true, args, fn);
