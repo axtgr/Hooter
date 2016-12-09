@@ -4,6 +4,9 @@ let Store = require('match-store');
 let match = require('wildcard-match').bind(null, '.');
 
 
+const GENERATOR_PROTO = Object.getPrototypeOf(function*() {});
+
+
 class Hooter extends Subject {
   constructor(settings) {
     super();
@@ -87,9 +90,7 @@ function process(eventType, cb, args, sync) {
   let hooks = this.hookStore.get(eventType);
 
   if (cb) {
-    let wrappedCb = function wrappedCallback(event, ...args) {
-      return cb.apply(this, args);
-    };
+    let wrappedCb = wrapCb(cb);
     hooks.push(wrappedCb);
   }
 
@@ -99,6 +100,19 @@ function process(eventType, cb, args, sync) {
     return this.hoots.runSync(hooks, event, ...args);
   } else {
     return this.hoots.run(hooks, event, ...args);
+  }
+}
+
+
+function wrapCb(cb) {
+  if (GENERATOR_PROTO.isPrototypeOf(cb)) {
+    return function* wrappedCallback(event, ...args) {
+      return yield* cb.apply(this, args);
+    };
+  } else {
+    return function wrappedCallback(event, ...args) {
+      return cb.apply(this, args);
+    };
   }
 }
 
