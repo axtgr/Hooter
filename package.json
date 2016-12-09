@@ -1,6 +1,6 @@
 {
   "name": "hooter",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "Next-generation event emitter and plugin system",
   "author": "Alex Shnayder <alex@shnayder.pro>",
   "license": "MIT",
