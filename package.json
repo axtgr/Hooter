@@ -31,7 +31,7 @@
     "eslint-plugin-no-empty-blocks": "0.0.2"
   },
   "dependencies": {
-    "hoots": "^0.4.3",
+    "hoots": "^0.5.0",
     "match-store": "^2.0.0",
     "rxjs": "^5.0.0-rc.4",
     "wildcard-match": "^1.0.0"
