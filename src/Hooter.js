@@ -52,20 +52,20 @@ class Hooter extends Subject {
     return this.next(event);
   }
 
-  process(eventType, ...args) {
-    return process.call(this, eventType, null, args, false);
+  process(options, ...args) {
+    return process.call(this, options, null, args, false);
   }
 
-  processSync(eventType, ...args) {
-    return process.call(this, eventType, null, args, true);
+  processSync(options, ...args) {
+    return process.call(this, options, null, args, true);
   }
 
-  processWith(eventType, cb, ...args) {
-    return process.call(this, eventType, cb, args, false);
+  processWith(options, cb, ...args) {
+    return process.call(this, options, cb, args, false);
   }
 
-  processWithSync(eventType, cb, ...args) {
-    return process.call(this, eventType, cb, args, true);
+  processWithSync(options, cb, ...args) {
+    return process.call(this, options, cb, args, true);
   }
 
   hooks(eventType) {
@@ -80,27 +80,31 @@ class Hooter extends Subject {
 }
 
 
-function process(eventType, cb, args, sync) {
+function process(options, cb, args, sync) {
+  let eventType = options;
+  let params;
+
+  if (options && typeof options === 'object') {
+    eventType = options.event;
+    params = options.params;
+  }
+
   if (typeof eventType !== 'string') {
     throw new TypeError('Event type must be a string');
   }
 
   cb = (typeof cb === 'function') ? cb : undefined;
   let event = new Event(eventType, true, args, cb);
-  let hooks = this.hookStore.get(eventType);
+  args = [event].concat(args);
+  let handlers = this.hookStore.get(eventType);
 
   if (cb) {
-    let wrappedCb = wrapCb(cb);
-    hooks.push(wrappedCb);
+    handlers.push(wrapCb(cb));
   }
 
   this.next(event);
 
-  if (sync) {
-    return this.hoots.runSync(hooks, event, ...args);
-  } else {
-    return this.hoots.run(hooks, event, ...args);
-  }
+  return this.hoots.execute({ handlers, args, sync, params });
 }
 
 
