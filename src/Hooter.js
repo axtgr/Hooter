@@ -53,19 +53,27 @@ class Hooter extends Subject {
   }
 
   process(options, ...args) {
-    return process.call(this, options, null, args, false);
+    return process.call(this, options, null, args);
   }
 
   processSync(options, ...args) {
-    return process.call(this, options, null, args, true);
+    return process.call(this, options, null, args, 'sync');
+  }
+
+  processAsync(options, ...args) {
+    return process.call(this, options, null, args, 'async');
   }
 
   processWith(options, cb, ...args) {
-    return process.call(this, options, cb, args, false);
+    return process.call(this, options, cb, args);
   }
 
-  processWithSync(options, cb, ...args) {
-    return process.call(this, options, cb, args, true);
+  processSyncWith(options, cb, ...args) {
+    return process.call(this, options, cb, args, 'sync');
+  }
+
+  processAsyncWith(options, cb, ...args) {
+    return process.call(this, options, cb, args, 'async');
   }
 
   hooks(eventType) {
@@ -80,7 +88,7 @@ class Hooter extends Subject {
 }
 
 
-function process(options, cb, args, sync) {
+function process(options, cb, args, mode) {
   let eventType = options;
   let params;
 
@@ -104,7 +112,7 @@ function process(options, cb, args, sync) {
 
   this.next(event);
 
-  return this.hoots.execute({ handlers, args, sync, params });
+  return this.hoots.execute({ handlers, args, params, mode });
 }
 
 
