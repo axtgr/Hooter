@@ -1,0 +1,60 @@
+{
+  "extends": [
+    "eslint:recommended",
+    "plugin:import/errors"
+  ],
+  "plugins": [
+    "import"
+  ],
+  "parserOptions": {
+    "ecmaVersion": 2016,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "browser": true
+  },
+  "rules": {
+    "max-len": ["error", {
+      "code": 80,
+      "ignoreComments": true,
+      "ignoreStrings": true
+    }],
+    "indent": ["error", 2, {
+      "SwitchCase": 1
+    }],
+    "semi": ["error", "never"],
+    "quotes": ["error", "single"],
+    "brace-style": "error",
+    "comma-dangle": ["error", {
+      "arrays": "always-multiline",
+      "objects": "always-multiline",
+      "imports": "never",
+      "exports": "never",
+      "functions": "never"
+    }],
+    "curly": ["error", "all"],
+    "object-curly-spacing": ["error", "always"],
+    "arrow-parens": "error",
+    "generator-star-spacing": ["error", "after"],
+    "no-multiple-empty-lines:": "off",
+    "no-console": "off",
+    "no-extend-native": "error",
+    "no-throw-literal": "error",
+    "no-empty": ["error", {
+      "allowEmptyCatch": true
+    }],
+    "no-use-before-define": ["error", {
+      "functions": false,
+      "classes": false,
+      "variables": true
+    }],
+    "import/newline-after-import": ["error", {
+      "count": 2
+    }]
+  }
+}
