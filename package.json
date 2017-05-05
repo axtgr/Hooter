@@ -1,30 +1,22 @@
 {
   "name": "hooter",
   "version": "0.8.0",
-  "description": "Next-generation event emitter and plugin system",
-  "author": "Alex Shnayder <alex@shnayder.pro>",
-  "license": "MIT",
-  "main": "src/Hooter.js",
-  "scripts": {
-    "lint": "./node_modules/.bin/eslint src test"
-  },
+  "repository": "alex-shnayder/hooter",
+  "homepage": "https://github.com/alex-shnayder/hooter#readme",
+  "bugs": "https://github.com/alex-shnayder/hooter/issues",
+  "license": "ISC",
   "keywords": [
     "event emitter",
     "emitter",
     "events",
     "plugins",
     "hooks",
-    "generators",
-    "hoots"
+    "generators"
   ],
-  "homepage": "https://github.com/alex-shnayder/hooter",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/alex-shnayder/hooter.git"
+  "scripts": {
+    "lint": "./node_modules/.bin/eslint src test"
   },
-  "bugs": {
-    "url": "https://github.com/alex-shnayder/hooter/issues"
-  },
+  "main": "src/Hooter.js",
   "devDependencies": {
     "babel-eslint": "^7.1.1",
     "eslint": "^3.12.2",
