@@ -106,32 +106,32 @@ class Hooter extends Subject {
     }
   }
 
-  process(eventType, ...args) {
+  toot(eventType, ...args) {
     let event = createEvent(eventType, 'asIs', args)
     return this.next(event)
   }
 
-  processSync(eventType, ...args) {
+  tootSync(eventType, ...args) {
     let event = createEvent(eventType, 'sync', args)
     return this.next(event)
   }
 
-  processAsync(eventType, ...args) {
+  tootAsync(eventType, ...args) {
     let event = createEvent(eventType, 'async', args)
     return this.next(event)
   }
 
-  processWith(eventType, cb, ...args) {
+  tootWith(eventType, cb, ...args) {
     let event = createEvent(eventType, 'asIs', args, cb)
     return this.next(event)
   }
 
-  processSyncWith(eventType, cb, ...args) {
+  tootSyncWith(eventType, cb, ...args) {
     let event = createEvent(eventType, 'sync', args, cb)
     return this.next(event)
   }
 
-  processAsyncWith(eventType, cb, ...args) {
+  tootAsyncWith(eventType, cb, ...args) {
     let event = createEvent(eventType, 'async', args, cb)
     return this.next(event)
   }
