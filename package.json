@@ -1,17 +1,22 @@
 {
   "name": "hooter",
   "version": "0.8.0",
+  "description": "Next-generation plugin system",
   "repository": "alex-shnayder/hooter",
   "homepage": "https://github.com/alex-shnayder/hooter#readme",
   "bugs": "https://github.com/alex-shnayder/hooter/issues",
   "license": "ISC",
   "keywords": [
+    "plugins",
+    "plugin system",
+    "extension",
+    "hooks",
     "event emitter",
     "emitter",
     "events",
-    "plugins",
-    "hooks",
-    "generators"
+    "generators",
+    "rxjs",
+    "rx"
   ],
   "scripts": {
     "precommit": "lint-staged"
@@ -32,9 +37,9 @@
     "prettier": "^1.2.2"
   },
   "dependencies": {
-    "hoots": "^0.7.0",
+    "corrie": "^0.2.1",
     "match-store": "^2.0.0",
-    "rxjs": "^5.0.2",
+    "rxjs": "^5.3.1",
     "wildcard-match": "^1.0.0"
   }
 }

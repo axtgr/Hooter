@@ -1,1 +1,1 @@
-module.exports = require('hoots/effects');
+module.exports = require('corrie/effects')

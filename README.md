@@ -1,7 +1,5 @@
 # Hooter
 
-Hooter is an event emitter based on [Hoots](https://github.com/alex-shnayder/hoots).
-
 
 ## Installation
 
@@ -10,4 +8,4 @@ Hooter is an event emitter based on [Hoots](https://github.com/alex-shnayder/hoo
 
 ## License
 
-[MIT](LICENSE)
+[ISC](LICENSE)
