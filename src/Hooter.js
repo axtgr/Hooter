@@ -72,8 +72,10 @@ class Hooter extends Subject {
       throw new TypeError('An event type must be a string')
     }
 
-    if (!['asIs', 'sync', 'async'].includes(event.mode)) {
-      throw new Error('An event mode must be either "asIs", "sync" or "async"')
+    if (!['auto', 'asIs', 'sync', 'async'].includes(event.mode)) {
+      throw new Error(
+        'An event mode must be either "auto", asIs", "sync" or "async"'
+      )
     }
 
     if (event.cb && typeof event.cb !== 'function') {
@@ -99,7 +101,7 @@ class Hooter extends Subject {
 
     if (hooks.length === 0) {
       return
-    } else if (event.mode === 'asIs') {
+    } else if (event.mode === 'auto') {
       return this.corrie(...hooks)(event, ...event.args)
     } else {
       return this.corrie[event.mode](...hooks)(event, ...event.args)
@@ -107,6 +109,11 @@ class Hooter extends Subject {
   }
 
   toot(eventType, ...args) {
+    let event = createEvent(eventType, 'auto', args)
+    return this.next(event)
+  }
+
+  tootAsIs(eventType, ...args) {
     let event = createEvent(eventType, 'asIs', args)
     return this.next(event)
   }
@@ -122,6 +129,11 @@ class Hooter extends Subject {
   }
 
   tootWith(eventType, cb, ...args) {
+    let event = createEvent(eventType, 'auto', args, cb)
+    return this.next(event)
+  }
+
+  tootAsIsWith(eventType, cb, ...args) {
     let event = createEvent(eventType, 'asIs', args, cb)
     return this.next(event)
   }
