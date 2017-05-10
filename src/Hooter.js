@@ -1,19 +1,19 @@
 const { Subject } = require('rxjs')
 const corrie = require('corrie')
-const match = require('wildcard-match')
+const wildcardMatch = require('wildcard-match')
 const HookStore = require('./HookStore')
-
-const matchRecord = (record, needle) => {
-  return record.value === needle || match('.', record.key, needle)
-}
 
 class Hooter extends Subject {
   constructor(settings) {
     super()
     this.corrie = settings ? corrie(settings) : corrie
-    this.hookStoreBefore = new HookStore(matchRecord)
-    this.hookStore = new HookStore(matchRecord)
-    this.hookStoreAfter = new HookStore(matchRecord, true)
+    this.hookStoreBefore = new HookStore(this.match)
+    this.hookStore = new HookStore(this.match)
+    this.hookStoreAfter = new HookStore(this.match, true)
+  }
+
+  match(a, b) {
+    return wildcardMatch('.', a, b)
   }
 
   lift(operator) {
@@ -66,7 +66,7 @@ class Hooter extends Subject {
       throw new TypeError('A hook must be a function')
     }
 
-    hookStore.put(eventType, hook)
+    return hookStore.put(eventType, hook)
   }
 
   hook(eventType, hook) {
@@ -114,7 +114,10 @@ class Hooter extends Subject {
     let beforeHooks = this.hookStoreBefore.get(event.type)
     let hooks = this.hookStore.get(event.type)
     let afterHooks = this.hookStoreAfter.get(event.type)
-    let handlers = beforeHooks.concat(hooks).concat(afterHooks)
+    let handlers = beforeHooks
+      .concat(hooks)
+      .concat(afterHooks)
+      .map((hook) => hook.fn)
 
     if (event.cb) {
       handlers.push(wrapCb(event.cb))
@@ -182,7 +185,7 @@ class Hooter extends Subject {
   filter(predicate) {
     if (typeof predicate === 'string') {
       let eventType = predicate
-      predicate = (e) => match(e.type, eventType)
+      predicate = (e) => this.match(e.type, eventType)
     }
 
     return super.filter(predicate)

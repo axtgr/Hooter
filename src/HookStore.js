@@ -1,33 +1,38 @@
-function isRecordEqualToNeedle(record, needle) {
-  return record.value === needle || record.key === needle
+class Hook {
+  constructor(key, fn) {
+    this.key = key
+    this.fn = fn
+  }
 }
 
 module.exports = class HookStore {
   constructor(match, reverse) {
-    this.records = []
-    this.match = match || isRecordEqualToNeedle
+    this.hooks = []
+    this.match = match
     this.reverse = !!reverse
   }
 
-  put(key, value) {
-    let record = { key, value }
+  matchHook(hook, needle) {
+    return hook.fn === needle || this.match(hook.key, needle)
+  }
+
+  put(key, fn) {
+    let hook = new Hook(key, fn)
 
     if (this.reverse) {
-      this.records.unshift(record)
+      this.hooks.unshift(hook)
     } else {
-      this.records.push(record)
+      this.hooks.push(hook)
     }
+
+    return hook
   }
 
   get(needle) {
-    let match = this.match
-    return this.records
-      .filter((record) => match(record, needle))
-      .map((record) => record.value)
+    return this.hooks.filter((hook) => this.matchHook(hook, needle))
   }
 
   del(needle) {
-    let match = this.match
-    this.records = this.records.filter((record) => !match(record, needle))
+    this.hooks = this.hooks.filter((hook) => !this.matchHook(hook, needle))
   }
 }
