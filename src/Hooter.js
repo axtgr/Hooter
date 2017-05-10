@@ -11,7 +11,9 @@ class Hooter extends Subject {
   constructor(settings) {
     super()
     this.corrie = settings ? corrie(settings) : corrie
+    this.hookStoreBefore = new HookStore(matchRecord)
     this.hookStore = new HookStore(matchRecord)
+    this.hookStoreAfter = new HookStore(matchRecord, true)
   }
 
   lift(operator) {
@@ -52,7 +54,7 @@ class Hooter extends Subject {
     super.complete()
   }
 
-  hook(eventType, hook) {
+  _hook(eventType, hook, hookStore) {
     if (arguments.length === 1) {
       hook = eventType
       eventType = '**'
@@ -64,7 +66,19 @@ class Hooter extends Subject {
       throw new TypeError('A hook must be a function')
     }
 
-    this.hookStore.put(eventType, hook)
+    hookStore.put(eventType, hook)
+  }
+
+  hook(eventType, hook) {
+    return this._hook(eventType, hook, this.hookStore)
+  }
+
+  hookBefore(eventType, hook) {
+    return this._hook(eventType, hook, this.hookStoreBefore)
+  }
+
+  hookAfter(eventType, hook) {
+    return this._hook(eventType, hook, this.hookStoreAfter)
   }
 
   next(event) {
@@ -97,18 +111,21 @@ class Hooter extends Subject {
 
     super.next(event)
 
+    let beforeHooks = this.hookStoreBefore.get(event.type)
     let hooks = this.hookStore.get(event.type)
+    let afterHooks = this.hookStoreAfter.get(event.type)
+    let handlers = beforeHooks.concat(hooks).concat(afterHooks)
 
     if (event.cb) {
-      hooks.push(wrapCb(event.cb))
+      handlers.push(wrapCb(event.cb))
     }
 
-    if (hooks.length === 0) {
+    if (handlers.length === 0) {
       return
     } else if (event.mode === 'auto') {
-      return this.corrie(...hooks)(event, ...event.args)
+      return this.corrie(...handlers)(event, ...event.args)
     } else {
-      return this.corrie[event.mode](...hooks)(event, ...event.args)
+      return this.corrie[event.mode](...handlers)(event, ...event.args)
     }
   }
 

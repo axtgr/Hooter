@@ -3,14 +3,20 @@ function isRecordEqualToNeedle(record, needle) {
 }
 
 module.exports = class HookStore {
-  constructor(match) {
+  constructor(match, reverse) {
     this.records = []
     this.match = match || isRecordEqualToNeedle
+    this.reverse = !!reverse
   }
 
   put(key, value) {
     let record = { key, value }
-    this.records.push(record)
+
+    if (this.reverse) {
+      this.records.unshift(record)
+    } else {
+      this.records.push(record)
+    }
   }
 
   get(needle) {
