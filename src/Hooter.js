@@ -1,13 +1,17 @@
 const { Subject } = require('rxjs')
 const corrie = require('corrie')
-const Store = require('match-store')
-const match = require('wildcard-match').bind(null, '.')
+const match = require('wildcard-match')
+const HookStore = require('./HookStore')
+
+const matchRecord = (record, needle) => {
+  return record.value === needle || match('.', record.key, needle)
+}
 
 class Hooter extends Subject {
   constructor(settings) {
     super()
     this.corrie = settings ? corrie(settings) : corrie
-    this.hookStore = new Store({ match })
+    this.hookStore = new HookStore(matchRecord)
   }
 
   lift(operator) {
