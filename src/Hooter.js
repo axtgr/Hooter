@@ -81,6 +81,12 @@ class Hooter extends Subject {
     return this._hook(eventType, hook, this.hookStoreAfter)
   }
 
+  unhook(needle) {
+    this.hookStoreBefore.del(needle)
+    this.hookStore.del(needle)
+    this.hookStoreAfter.del(needle)
+  }
+
   next(event) {
     if (!event || typeof event !== 'object') {
       throw new TypeError('An event must be an object')
