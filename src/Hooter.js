@@ -123,18 +123,18 @@ class Hooter extends Subject {
     let handlers = beforeHooks
       .concat(hooks)
       .concat(afterHooks)
-      .map((hook) => hook.fn)
+      .map((hook) => hook.fn.bind(event))
 
     if (event.cb) {
-      handlers.push(wrapCb(event.cb))
+      handlers.push(event.cb)
     }
 
     if (handlers.length === 0) {
       return
     } else if (event.mode === 'auto') {
-      return this.corrie(...handlers)(event, ...event.args)
+      return this.corrie(...handlers)(...event.args)
     } else {
-      return this.corrie[event.mode](...handlers)(event, ...event.args)
+      return this.corrie[event.mode](...handlers)(...event.args)
     }
   }
 
@@ -207,12 +207,6 @@ function createEvent(type, mode, args, cb) {
   }
 
   return event
-}
-
-function wrapCb(cb) {
-  return function wrappedCallback(e, ...args) {
-    return cb.apply(this, args)
-  }
 }
 
 module.exports = Hooter
