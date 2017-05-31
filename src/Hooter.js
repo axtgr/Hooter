@@ -138,44 +138,41 @@ class Hooter extends Subject {
     }
   }
 
-  toot(eventType, ...args) {
-    let event = createEvent(eventType, 'auto', args)
+  _toot(eventType, mode, args, cb) {
+    let event = createEvent(eventType, mode, args, cb)
     return this.next(event)
+  }
+
+  toot(eventType, ...args) {
+    return this._toot(eventType, 'auto', args)
   }
 
   tootAsIs(eventType, ...args) {
-    let event = createEvent(eventType, 'asIs', args)
-    return this.next(event)
+    return this._toot(eventType, 'asIs', args)
   }
 
   tootSync(eventType, ...args) {
-    let event = createEvent(eventType, 'sync', args)
-    return this.next(event)
+    return this._toot(eventType, 'sync', args)
   }
 
   tootAsync(eventType, ...args) {
-    let event = createEvent(eventType, 'async', args)
-    return this.next(event)
+    return this._toot(eventType, 'async', args)
   }
 
   tootWith(eventType, cb, ...args) {
-    let event = createEvent(eventType, 'auto', args, cb)
-    return this.next(event)
+    return this._toot(eventType, 'auto', args, cb)
   }
 
   tootAsIsWith(eventType, cb, ...args) {
-    let event = createEvent(eventType, 'asIs', args, cb)
-    return this.next(event)
+    return this._toot(eventType, 'asIs', args, cb)
   }
 
   tootSyncWith(eventType, cb, ...args) {
-    let event = createEvent(eventType, 'sync', args, cb)
-    return this.next(event)
+    return this._toot(eventType, 'sync', args, cb)
   }
 
   tootAsyncWith(eventType, cb, ...args) {
-    let event = createEvent(eventType, 'async', args, cb)
-    return this.next(event)
+    return this._toot(eventType, 'async', args, cb)
   }
 
   prefix(prefix) {
