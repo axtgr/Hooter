@@ -76,11 +76,11 @@ class Hooter extends Subject {
     return this._hook(eventType, hook, this.hookStore)
   }
 
-  hookBefore(eventType, hook) {
+  hookStart(eventType, hook) {
     return this._hook(eventType, hook, this.hookStoreBefore)
   }
 
-  hookAfter(eventType, hook) {
+  hookEnd(eventType, hook) {
     return this._hook(eventType, hook, this.hookStoreAfter)
   }
 
