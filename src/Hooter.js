@@ -147,6 +147,10 @@ class Hooter extends Subject {
     return this._toot(eventType, 'auto', args)
   }
 
+  tootAuto(eventType, ...args) {
+    return this._toot(eventType, 'auto', args)
+  }
+
   tootAsIs(eventType, ...args) {
     return this._toot(eventType, 'asIs', args)
   }
@@ -160,6 +164,10 @@ class Hooter extends Subject {
   }
 
   tootWith(eventType, cb, ...args) {
+    return this._toot(eventType, 'auto', args, cb)
+  }
+
+  tootAutoWith(eventType, cb, ...args) {
     return this._toot(eventType, 'auto', args, cb)
   }
 
