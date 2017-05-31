@@ -3,6 +3,8 @@ const corrie = require('corrie')
 const wildcardMatch = require('wildcard-match')
 const HookStore = require('./HookStore')
 
+const MODES = ['auto', 'asIs', 'sync', 'async']
+
 class Hooter extends Subject {
   constructor(settings) {
     super()
@@ -10,6 +12,7 @@ class Hooter extends Subject {
     this.hookStoreBefore = new HookStore(this.match)
     this.hookStore = new HookStore(this.match)
     this.hookStoreAfter = new HookStore(this.match, true)
+    this.events = {}
   }
 
   match(a, b) {
@@ -139,12 +142,27 @@ class Hooter extends Subject {
   }
 
   _toot(eventType, mode, args, cb) {
+    let registeredEvent = this.events[eventType]
+
+    if (registeredEvent) {
+      if (mode) {
+        throw new Error(
+          `Event "${eventType}" is a registered event` +
+            'and shouldn\'t be tooted with a custom mode'
+        )
+      }
+
+      mode = registeredEvent.mode
+    } else {
+      mode = mode || 'auto'
+    }
+
     let event = createEvent(eventType, mode, args, cb)
     return this.next(event)
   }
 
   toot(eventType, ...args) {
-    return this._toot(eventType, 'auto', args)
+    return this._toot(eventType, null, args)
   }
 
   tootAuto(eventType, ...args) {
@@ -164,7 +182,7 @@ class Hooter extends Subject {
   }
 
   tootWith(eventType, cb, ...args) {
-    return this._toot(eventType, 'auto', args, cb)
+    return this._toot(eventType, null, args, cb)
   }
 
   tootAutoWith(eventType, cb, ...args) {
@@ -181,6 +199,22 @@ class Hooter extends Subject {
 
   tootAsyncWith(eventType, cb, ...args) {
     return this._toot(eventType, 'async', args, cb)
+  }
+
+  register(eventType, mode) {
+    if (typeof eventType !== 'string' || !eventType.length) {
+      throw new Error('An event type must be a non-empty string')
+    }
+
+    if (this.events[eventType]) {
+      throw new Error(`Event "${eventType}" is already registered`)
+    }
+
+    if (!MODES.includes(mode)) {
+      throw new Error('A mode must be one of the following:', MODES.join(', '))
+    }
+
+    this.events[eventType] = { mode }
   }
 
   prefix(prefix) {
