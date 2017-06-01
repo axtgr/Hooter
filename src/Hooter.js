@@ -8,7 +8,17 @@ const MODES = ['auto', 'asIs', 'sync', 'async']
 class Hooter extends Subject {
   constructor(settings) {
     super()
-    this.corrie = settings ? corrie(settings) : corrie
+
+    let state = { hooter: this }
+
+    if (settings) {
+      state = settings.state ? Object.assign(state, settings.state) : state
+      settings = Object.assign({}, settings, { state })
+    } else {
+      settings = { state }
+    }
+
+    this.corrie = corrie(settings)
     this.hookStoreBefore = new HookStore(this.match)
     this.hookStore = new HookStore(this.match)
     this.hookStoreAfter = new HookStore(this.match, true)
