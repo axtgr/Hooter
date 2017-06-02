@@ -2,22 +2,29 @@ const { Subject } = require('rxjs')
 const corrie = require('corrie')
 const wildcardMatch = require('wildcard-match')
 const HookStore = require('./HookStore')
+const { tootHandler } = require('./effects')
 
 const MODES = ['auto', 'asIs', 'sync', 'async']
+const SETTINGS = corrie.DEFAULT_SETTINGS
+const EFFECTS = {
+  toot: tootHandler,
+}
 
 class Hooter extends Subject {
   constructor(settings) {
     super()
 
+    let effectHandlers = Object.assign({}, SETTINGS.effectHandlers, EFFECTS)
     let state = { hooter: this }
 
     if (settings) {
       state = settings.state ? Object.assign(state, settings.state) : state
-      settings = Object.assign({}, settings, { state })
-    } else {
-      settings = { state }
+      effectHandlers = settings.effectHandlers
+        ? Object.assign(effectHandlers, settings.effectHandlers)
+        : state
     }
 
+    settings = Object.assign({}, SETTINGS, settings, { effectHandlers, state })
     this.corrie = corrie(settings)
     this.hookStoreBefore = new HookStore(this.match)
     this.hookStore = new HookStore(this.match)
