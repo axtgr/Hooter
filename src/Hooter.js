@@ -151,64 +151,19 @@ class Hooter extends Subject {
     }
   }
 
-  _toot(eventType, mode, args, cb) {
+  _toot(eventType, args, cb) {
     let registeredEvent = this.events[eventType]
-
-    if (registeredEvent) {
-      if (mode) {
-        throw new Error(
-          `Event "${eventType}" is a registered event` +
-            'and shouldn\'t be tooted with a custom mode'
-        )
-      }
-
-      mode = registeredEvent.mode
-    } else {
-      mode = mode || 'auto'
-    }
-
+    let mode = registeredEvent ? registeredEvent.mode : 'auto'
     let event = createEvent(eventType, mode, args, cb)
     return this.next(event)
   }
 
   toot(eventType, ...args) {
-    return this._toot(eventType, null, args)
-  }
-
-  tootAuto(eventType, ...args) {
-    return this._toot(eventType, 'auto', args)
-  }
-
-  tootAsIs(eventType, ...args) {
-    return this._toot(eventType, 'asIs', args)
-  }
-
-  tootSync(eventType, ...args) {
-    return this._toot(eventType, 'sync', args)
-  }
-
-  tootAsync(eventType, ...args) {
-    return this._toot(eventType, 'async', args)
+    return this._toot(eventType, args)
   }
 
   tootWith(eventType, cb, ...args) {
-    return this._toot(eventType, null, args, cb)
-  }
-
-  tootAutoWith(eventType, cb, ...args) {
-    return this._toot(eventType, 'auto', args, cb)
-  }
-
-  tootAsIsWith(eventType, cb, ...args) {
-    return this._toot(eventType, 'asIs', args, cb)
-  }
-
-  tootSyncWith(eventType, cb, ...args) {
-    return this._toot(eventType, 'sync', args, cb)
-  }
-
-  tootAsyncWith(eventType, cb, ...args) {
-    return this._toot(eventType, 'async', args, cb)
+    return this._toot(eventType, args, cb)
   }
 
   register(eventType, mode) {
