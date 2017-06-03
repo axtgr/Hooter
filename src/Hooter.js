@@ -90,14 +90,26 @@ class Hooter extends Subject {
   }
 
   hook(eventType, hook) {
+    if (this.source && this.source.hook) {
+      return this.source.hook(eventType, hook)
+    }
+
     return this._hook(eventType, hook, this.hookStore)
   }
 
   hookStart(eventType, hook) {
+    if (this.source && this.source.hookStart) {
+      return this.source.hookStart(eventType, hook)
+    }
+
     return this._hook(eventType, hook, this.hookStoreBefore)
   }
 
   hookEnd(eventType, hook) {
+    if (this.source && this.source.hookEnd) {
+      return this.source.hookEnd(eventType, hook)
+    }
+
     return this._hook(eventType, hook, this.hookStoreAfter)
   }
 
@@ -174,6 +186,10 @@ class Hooter extends Subject {
   }
 
   register(eventType, mode) {
+    if (this.source && this.source.register) {
+      return this.source.register(eventType, mode)
+    }
+
     if (typeof eventType !== 'string' || !eventType.length) {
       throw new Error('An event type must be a non-empty string')
     }
@@ -209,9 +225,9 @@ class Hooter extends Subject {
   }
 }
 
-function createEvent(type, mode, args, cb) {
+function createEvent(source, type, mode, args, cb) {
   args = args || []
-  let event = { type, mode, args }
+  let event = { type, mode, args, source }
 
   if (cb) {
     event.cb = cb
