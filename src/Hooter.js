@@ -155,7 +155,7 @@ class Hooter extends Subject {
     let handlers = beforeHooks
       .concat(hooks)
       .concat(afterHooks)
-      .map((hook) => hook.fn.bind(event))
+      .map((hook) => hook.fn)
 
     if (event.cb) {
       handlers.push(event.cb)
@@ -164,9 +164,9 @@ class Hooter extends Subject {
     if (handlers.length === 0) {
       return
     } else if (event.mode === 'auto') {
-      return this.corrie(...handlers)(...event.args)
+      return this.corrie(...handlers).apply(event, event.args)
     } else {
-      return this.corrie[event.mode](...handlers)(...event.args)
+      return this.corrie[event.mode](...handlers).apply(event, event.args)
     }
   }
 
