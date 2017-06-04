@@ -173,7 +173,7 @@ class Hooter extends Subject {
   _toot(eventType, args, cb) {
     let registeredEvent = this.events[eventType]
     let mode = registeredEvent ? registeredEvent.mode : 'auto'
-    let event = createEvent(eventType, mode, args, cb)
+    let event = createEvent(this.tooter, eventType, mode, args, cb)
     return this.next(event)
   }
 
@@ -222,6 +222,12 @@ class Hooter extends Subject {
     }
 
     return super.filter(predicate)
+  }
+
+  bind(tooter) {
+    let clone = this.lift()
+    clone.tooter = tooter
+    return clone
   }
 }
 
