@@ -15,7 +15,8 @@ function throwHandler(effect, execution) {
 function tootHandler(effect, execution) {
   let { event, args, cb } = effect
   let hooter = execution.state.hooter
-  return hooter._toot(event, args, cb)
+  let value = hooter._toot(event, args, cb)
+  return { effect: 'resolve', value }
 }
 
 function toot(event, ...args) {
