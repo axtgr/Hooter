@@ -231,6 +231,10 @@ class Hooter extends Subject {
     clone.tooter = tooter
     return clone
   }
+
+  wrap(...args) {
+    return this.corrie(...args)
+  }
 }
 
 function createEvent(source, type, mode, args, cb) {
