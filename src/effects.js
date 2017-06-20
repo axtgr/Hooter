@@ -1,7 +1,7 @@
 function throwHandler(effect, execution) {
   let err = effect.err
 
-  if (!err.event) {
+  if (err instanceof Error && !err.event) {
     Object.defineProperty(err, 'event', {
       value: execution.context,
       enumerable: false,
