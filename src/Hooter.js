@@ -2,13 +2,14 @@ const { Subject } = require('rxjs')
 const corrie = require('corrie')
 const wildcardMatch = require('wildcard-match')
 const HookStore = require('./HookStore')
-const { throwHandler, tootHandler } = require('./effects')
+const { throwHandler, tootHandler, hookHandler } = require('./effects')
 
 const MODES = ['auto', 'asIs', 'sync', 'async']
 const SETTINGS = corrie.DEFAULT_SETTINGS
 const EFFECTS = {
   throw: throwHandler,
   toot: tootHandler,
+  hook: hookHandler,
 }
 
 class Hooter extends Subject {

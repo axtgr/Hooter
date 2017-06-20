@@ -1,5 +1,5 @@
 let corrieEffects = require('corrie/effects')
-let { toot, tootWith } = require('./src/effects')
+let { toot, tootWith, hook, hookStart, hookEnd } = require('./src/effects')
 
 Object.keys(corrieEffects).forEach((key) => {
   module.exports[key] = corrieEffects[key]
@@ -7,3 +7,6 @@ Object.keys(corrieEffects).forEach((key) => {
 
 module.exports.toot = toot
 module.exports.tootWith = tootWith
+module.exports.hook = hook
+module.exports.hookStart = hookStart
+module.exports.hookEnd = hookEnd

@@ -27,9 +27,38 @@ function tootWith(event, cb, ...args) {
   return { effect: 'toot', event, args, cb }
 }
 
+function hookHandler(effect, execution) {
+  let { args, mode } = effect
+  let hooter = execution.state.hooter
+
+  if (mode === 'start') {
+    return hooter.hookStart(...args)
+  } else if (mode === 'end') {
+    return hooter.hookEnd(...args)
+  } else {
+    return hooter.hook(...args)
+  }
+}
+
+function hook(...args) {
+  return { effect: 'hook', args }
+}
+
+function hookStart(...args) {
+  return { effect: 'hook', mode: 'start', args }
+}
+
+function hookEnd(...args) {
+  return { effect: 'hook', mode: 'end', args }
+}
+
 module.exports = {
   throwHandler,
   tootHandler,
   toot,
   tootWith,
+  hookHandler,
+  hook,
+  hookStart,
+  hookEnd,
 }
