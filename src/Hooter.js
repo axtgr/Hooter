@@ -1,7 +1,7 @@
 const { Subject } = require('rxjs')
 const corrie = require('corrie')
 const wildcardMatch = require('wildcard-match')
-const HookStore = require('./HookStore')
+const HandlerStore = require('./HandlerStore')
 const { throwHandler, tootHandler, hookHandler } = require('./effects')
 
 const MODES = ['auto', 'asIs', 'sync', 'async']
@@ -28,9 +28,9 @@ class Hooter extends Subject {
 
     settings = Object.assign({}, SETTINGS, settings, { effectHandlers, state })
     this.corrie = corrie(settings)
-    this.hookStoreBefore = new HookStore(this.match)
-    this.hookStore = new HookStore(this.match)
-    this.hookStoreAfter = new HookStore(this.match, true)
+    this.handlerStoreBefore = new HandlerStore(this.match)
+    this.handlerStore = new HandlerStore(this.match)
+    this.handlerStoreAfter = new HandlerStore(this.match, true)
     this.events = {}
   }
 
@@ -76,49 +76,49 @@ class Hooter extends Subject {
     super.complete()
   }
 
-  _hook(eventType, hook, hookStore) {
+  _hook(eventType, handler, handlerStore) {
     if (arguments.length === 1) {
-      hook = eventType
+      handler = eventType
       eventType = '**'
     } else if (typeof eventType !== 'string') {
       throw new TypeError('An event type must be a string')
     }
 
-    if (typeof hook !== 'function') {
-      throw new TypeError('A hook must be a function')
+    if (typeof handler !== 'function') {
+      throw new TypeError('A handler must be a function')
     }
 
-    return hookStore.put(eventType, hook)
+    return handlerStore.put(eventType, handler)
   }
 
-  hook(eventType, hook) {
+  hook(eventType, handler) {
     if (this.source && this.source.hook) {
-      return this.source.hook(eventType, hook)
+      return this.source.hook(eventType, handler)
     }
 
-    return this._hook(eventType, hook, this.hookStore)
+    return this._hook(eventType, handler, this.handlerStore)
   }
 
-  hookStart(eventType, hook) {
+  hookStart(eventType, handler) {
     if (this.source && this.source.hookStart) {
-      return this.source.hookStart(eventType, hook)
+      return this.source.hookStart(eventType, handler)
     }
 
-    return this._hook(eventType, hook, this.hookStoreBefore)
+    return this._hook(eventType, handler, this.handlerStoreBefore)
   }
 
-  hookEnd(eventType, hook) {
+  hookEnd(eventType, handler) {
     if (this.source && this.source.hookEnd) {
-      return this.source.hookEnd(eventType, hook)
+      return this.source.hookEnd(eventType, handler)
     }
 
-    return this._hook(eventType, hook, this.hookStoreAfter)
+    return this._hook(eventType, handler, this.handlerStoreAfter)
   }
 
-  unhook(needle) {
-    this.hookStoreBefore.del(needle)
-    this.hookStore.del(needle)
-    this.hookStoreAfter.del(needle)
+  unhook(handler) {
+    this.handlerStoreBefore.del(handler)
+    this.handlerStore.del(handler)
+    this.handlerStoreAfter.del(handler)
   }
 
   next(event) {
@@ -151,24 +151,24 @@ class Hooter extends Subject {
 
     super.next(event)
 
-    let beforeHooks = this.hookStoreBefore.get(event.type)
-    let hooks = this.hookStore.get(event.type)
-    let afterHooks = this.hookStoreAfter.get(event.type)
-    let handlers = beforeHooks
-      .concat(hooks)
-      .concat(afterHooks)
-      .map((hook) => hook.fn)
+    let beforeHandlers = this.handlerStoreBefore.get(event.type)
+    let handlers = this.handlerStore.get(event.type)
+    let afterHandlers = this.handlerStoreAfter.get(event.type)
+    let allHandlers = beforeHandlers
+      .concat(handlers)
+      .concat(afterHandlers)
+      .map((handler) => handler.fn)
 
     if (event.cb) {
-      handlers.push(event.cb)
+      allHandlers.push(event.cb)
     }
 
-    if (handlers.length === 0) {
+    if (allHandlers.length === 0) {
       return
     } else if (event.mode === 'auto') {
-      return this.corrie(...handlers).apply(event, event.args)
+      return this.corrie(...allHandlers).apply(event, event.args)
     } else {
-      return this.corrie[event.mode](...handlers).apply(event, event.args)
+      return this.corrie[event.mode](...allHandlers).apply(event, event.args)
     }
   }
 
