@@ -76,43 +76,43 @@ class Hooter extends Subject {
     super.complete()
   }
 
-  _hook(eventType, handler, handlerStore) {
+  _hook(eventName, handler, handlerStore) {
     if (arguments.length === 1) {
-      handler = eventType
-      eventType = '**'
-    } else if (typeof eventType !== 'string') {
-      throw new TypeError('An event type must be a string')
+      handler = eventName
+      eventName = '**'
+    } else if (typeof eventName !== 'string') {
+      throw new TypeError('An event name must be a string')
     }
 
     if (typeof handler !== 'function') {
       throw new TypeError('A handler must be a function')
     }
 
-    return handlerStore.put(eventType, handler)
+    return handlerStore.put(eventName, handler)
   }
 
-  hook(eventType, handler) {
+  hook(eventName, handler) {
     if (this.source && this.source.hook) {
-      return this.source.hook(eventType, handler)
+      return this.source.hook(eventName, handler)
     }
 
-    return this._hook(eventType, handler, this.handlerStore)
+    return this._hook(eventName, handler, this.handlerStore)
   }
 
-  hookStart(eventType, handler) {
+  hookStart(eventName, handler) {
     if (this.source && this.source.hookStart) {
-      return this.source.hookStart(eventType, handler)
+      return this.source.hookStart(eventName, handler)
     }
 
-    return this._hook(eventType, handler, this.handlerStoreBefore)
+    return this._hook(eventName, handler, this.handlerStoreBefore)
   }
 
-  hookEnd(eventType, handler) {
+  hookEnd(eventName, handler) {
     if (this.source && this.source.hookEnd) {
-      return this.source.hookEnd(eventType, handler)
+      return this.source.hookEnd(eventName, handler)
     }
 
-    return this._hook(eventType, handler, this.handlerStoreAfter)
+    return this._hook(eventName, handler, this.handlerStoreAfter)
   }
 
   unhook(handler) {
@@ -126,8 +126,8 @@ class Hooter extends Subject {
       throw new TypeError('An event must be an object')
     }
 
-    if (typeof event.type !== 'string') {
-      throw new TypeError('An event type must be a string')
+    if (typeof event.name !== 'string') {
+      throw new TypeError('An event name must be a string')
     }
 
     if (!['auto', 'asIs', 'sync', 'async'].includes(event.mode)) {
@@ -142,7 +142,7 @@ class Hooter extends Subject {
 
     if (this._prefix) {
       event = Object.assign({}, event)
-      event.type = `${this._prefix}.${event.type}`
+      event.name = `${this._prefix}.${event.name}`
     }
 
     if (this.source && this.source.next) {
@@ -151,9 +151,9 @@ class Hooter extends Subject {
 
     super.next(event)
 
-    let beforeHandlers = this.handlerStoreBefore.get(event.type)
-    let handlers = this.handlerStore.get(event.type)
-    let afterHandlers = this.handlerStoreAfter.get(event.type)
+    let beforeHandlers = this.handlerStoreBefore.get(event.name)
+    let handlers = this.handlerStore.get(event.name)
+    let afterHandlers = this.handlerStoreAfter.get(event.name)
     let allHandlers = beforeHandlers
       .concat(handlers)
       .concat(afterHandlers)
@@ -172,39 +172,39 @@ class Hooter extends Subject {
     }
   }
 
-  _toot(eventType, args, cb) {
-    let registeredEvent = this.events[eventType]
+  _toot(eventName, args, cb) {
+    let registeredEvent = this.events[eventName]
     let mode = registeredEvent ? registeredEvent.mode : 'auto'
-    let event = createEvent(this.tooter, eventType, mode, args, cb)
+    let event = createEvent(this.tooter, eventName, mode, args, cb)
     return this.next(event)
   }
 
-  toot(eventType, ...args) {
-    return this._toot(eventType, args)
+  toot(eventName, ...args) {
+    return this._toot(eventName, args)
   }
 
-  tootWith(eventType, cb, ...args) {
-    return this._toot(eventType, args, cb)
+  tootWith(eventName, cb, ...args) {
+    return this._toot(eventName, args, cb)
   }
 
-  register(eventType, mode) {
+  register(eventName, mode) {
     if (this.source && this.source.register) {
-      return this.source.register(eventType, mode)
+      return this.source.register(eventName, mode)
     }
 
-    if (typeof eventType !== 'string' || !eventType.length) {
-      throw new Error('An event type must be a non-empty string')
+    if (typeof eventName !== 'string' || !eventName.length) {
+      throw new Error('An event name must be a non-empty string')
     }
 
-    if (this.events[eventType]) {
-      throw new Error(`Event "${eventType}" is already registered`)
+    if (this.events[eventName]) {
+      throw new Error(`Event "${eventName}" is already registered`)
     }
 
     if (!MODES.includes(mode)) {
       throw new Error('A mode must be one of the following:', MODES.join(', '))
     }
 
-    this.events[eventType] = { mode }
+    this.events[eventName] = { mode }
   }
 
   prefix(prefix) {
@@ -219,8 +219,8 @@ class Hooter extends Subject {
 
   filter(predicate) {
     if (typeof predicate === 'string') {
-      let eventType = predicate
-      predicate = (e) => this.match(e.type, eventType)
+      let eventName = predicate
+      predicate = (e) => this.match(e.name, eventName)
     }
 
     return super.filter(predicate)
@@ -237,9 +237,9 @@ class Hooter extends Subject {
   }
 }
 
-function createEvent(source, type, mode, args, cb) {
+function createEvent(source, name, mode, args, cb) {
   args = args || []
-  let event = { type, mode, args, source }
+  let event = { name, mode, args, source }
 
   if (cb) {
     event.cb = cb
