@@ -1,6 +1,6 @@
 {
   "name": "hooter",
-  "version": "0.15.0",
+  "version": "0.16.0",
   "description": "📯 Next-generation hook and plugin system",
   "repository": "alex-shnayder/hooter",
   "homepage": "https://github.com/alex-shnayder/hooter#readme",
