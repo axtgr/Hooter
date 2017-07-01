@@ -1,5 +1,6 @@
-let corrieEffects = require('corrie/effects')
-let { toot, tootWith, hook, hookStart, hookEnd } = require('./src/effects')
+const corrieEffects = require('corrie/effects')
+const { toot, tootWith, hook, hookStart, hookEnd } = require('./src/effects')
+
 
 Object.keys(corrieEffects).forEach((key) => {
   module.exports[key] = corrieEffects[key]
