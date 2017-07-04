@@ -1,8 +1,9 @@
-const { Subject } = require('rxjs')
+const { Subject } = require('rxjs/Subject')
 const corrie = require('corrie')
 const wildcardMatch = require('wildcard-match')
 const HandlerStore = require('./HandlerStore')
 const { throwHandler, tootHandler, hookHandler } = require('./effects')
+
 
 const MODES = ['auto', 'asIs', 'sync', 'async']
 const SETTINGS = corrie.DEFAULT_SETTINGS
