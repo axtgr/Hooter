@@ -6,6 +6,7 @@ const { throwHandler, tootHandler, hookHandler } = require('./effects')
 
 
 const MODES = ['auto', 'asIs', 'sync', 'async']
+const MODES_STRING = MODES.join(', ')
 const SETTINGS = corrie.DEFAULT_SETTINGS
 const EFFECTS = {
   throw: throwHandler,
@@ -28,6 +29,8 @@ class Hooter extends Subject {
     }
 
     settings = Object.assign({}, SETTINGS, settings, { effectHandlers, state })
+
+    this.settings = settings
     this.corrie = corrie(settings)
     this.handlerStoreBefore = new HandlerStore(this.match)
     this.handlerStore = new HandlerStore(this.match)
@@ -43,7 +46,7 @@ class Hooter extends Subject {
     // Rxjs subjects return an AnonymousSubject on lifting,
     // but we want to return an instance of Hooter
 
-    let instance = new this.constructor()
+    let instance = new this.constructor(this.settings)
 
     if (operator) {
       instance.operator = operator
@@ -131,9 +134,9 @@ class Hooter extends Subject {
       throw new TypeError('An event name must be a string')
     }
 
-    if (!['auto', 'asIs', 'sync', 'async'].includes(event.mode)) {
+    if (!MODES.includes(event.mode)) {
       throw new Error(
-        'An event mode must be either "auto", asIs", "sync" or "async"'
+        `An event mode must be one of the following: ${MODES_STRING}`
       )
     }
 
@@ -202,7 +205,9 @@ class Hooter extends Subject {
     }
 
     if (!MODES.includes(mode)) {
-      throw new Error('A mode must be one of the following:', MODES.join(', '))
+      throw new Error(
+        `An event mode must be one of the following: ${MODES_STRING}`
+      )
     }
 
     this.events[eventName] = { mode }
