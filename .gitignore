@@ -20,3 +20,4 @@ Thumbs.db
 ipch/
 *.sdf
 *.opensdf
+package-lock.json
