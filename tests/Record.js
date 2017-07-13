@@ -1,3 +1,5 @@
+const { describe, it } = require('mocha')
+const expect = require('expect')
 const Record = require('../src/Record')
 
 
@@ -19,7 +21,7 @@ describe('Record', () => {
 
   describe('#unhook()', () => {
     it('calls del() on the store', () => {
-      let store = jasmine.createSpyObj('foo', ['del'])
+      let store = { del: expect.createSpy() }
       let record = new Record(store)
       record.unhook()
 

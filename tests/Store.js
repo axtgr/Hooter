@@ -1,3 +1,5 @@
+const { describe, it } = require('mocha')
+const expect = require('expect')
 const Store = require('../src/Store')
 const Record = require('../src/Record')
 
@@ -76,17 +78,17 @@ describe('Store', () => {
       let all1 = store.get()
       let all2 = store.get()
 
-      expect(foo1).toEqual(jasmine.any(Array))
-      expect(foo2).toEqual(jasmine.any(Array))
-      expect(foo1).not.toBe(foo2)
+      expect(foo1).toBeA(Array)
+      expect(foo2).toBeA(Array)
+      expect(foo1).toNotBe(foo2)
 
-      expect(bar1).toEqual(jasmine.any(Array))
-      expect(bar2).toEqual(jasmine.any(Array))
-      expect(bar1).not.toBe(bar2)
+      expect(bar1).toBeA(Array)
+      expect(bar2).toBeA(Array)
+      expect(bar1).toNotBe(bar2)
 
-      expect(all1).toEqual(jasmine.any(Array))
-      expect(all2).toEqual(jasmine.any(Array))
-      expect(all1).not.toBe(all2)
+      expect(all1).toBeA(Array)
+      expect(all2).toBeA(Array)
+      expect(all1).toNotBe(all2)
     })
 
     it('returns an array of all the records when no needle provided', () => {
@@ -144,7 +146,6 @@ describe('Store', () => {
       let store = new Store(match)
       let record = store.put('foo', handlerA)
 
-      expect(record).toEqual(jasmine.any(Record))
       expect(record).toEqual(new Record(store, 'foo', handlerA))
     })
   })
