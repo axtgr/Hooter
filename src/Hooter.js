@@ -1,7 +1,7 @@
 const { Subject } = require('rxjs/Subject')
 const corrie = require('corrie')
 const wildcardMatch = require('wildcard-match')
-const HandlerStore = require('./HandlerStore')
+const HandlerStore = require('./Store')
 const { throwHandler, tootHandler, hookHandler } = require('./effects')
 
 
