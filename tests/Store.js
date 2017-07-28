@@ -1,7 +1,7 @@
 const { describe, it } = require('mocha')
 const expect = require('expect')
 const Store = require('../src/Store')
-const Record = require('../src/Record')
+const Handler = require('../src/Handler')
 
 
 function match(a, b) {
@@ -13,18 +13,28 @@ function handlerB() {}
 
 describe('Store', () => {
   describe('constructor', () => {
+    it('throws when no record constructor is provided', () => {
+      expect(() => new Store(undefined, match)).toThrow()
+      expect(() => new Store(null, match)).toThrow()
+      expect(() => new Store(12, match)).toThrow()
+      expect(() => new Store(Handler, match)).toNotThrow()
+      expect(() => new Store(() => {}, match)).toNotThrow()
+    })
+
     it('throws when no matching function is provided', () => {
       expect(() => new Store()).toThrow()
-      expect(() => new Store(12)).toThrow()
+      expect(() => new Store(Handler, 12)).toThrow()
+      expect(() => new Store(Handler, match)).toNotThrow()
+      expect(() => new Store(Handler, () => {})).toNotThrow()
     })
   })
 
   describe('#matchRecord()', () => {
     it('matches record instances by strict equality', () => {
-      let store = new Store(match)
-      let recordA = new Record({}, 'foo', handlerA)
-      let recordAA = new Record({}, 'foo', handlerA)
-      let recordB = new Record({}, 'bar', handlerB)
+      let store = new Store(Handler, match)
+      let recordA = Handler(store, 'foo', handlerA)
+      let recordAA = Handler(store, 'foo', handlerA)
+      let recordB = Handler(store, 'bar', handlerB)
 
       let result1 = store.matchRecord(recordA, recordA)
       let result2 = store.matchRecord(recordA, recordAA)
@@ -36,10 +46,10 @@ describe('Store', () => {
     })
 
     it('matches record keys using the matching function', () => {
-      let store = new Store(match)
-      let recordA = new Record({}, 'foo', handlerA)
-      let recordB = new Record({}, 'bar', handlerB)
-      let recordC = new Record({}, '*', handlerA)
+      let store = new Store(Handler, match)
+      let recordA = Handler(store, 'foo', handlerA)
+      let recordB = Handler(store, 'bar', handlerB)
+      let recordC = Handler(store, '*', handlerA)
 
       let result1 = store.matchRecord(recordA, 'foo')
       let result2 = store.matchRecord(recordB, 'bar')
@@ -59,7 +69,7 @@ describe('Store', () => {
 
   describe('#get()', () => {
     it('returns an empty array when nothing is found', () => {
-      let store = new Store(match)
+      let store = new Store(Handler, match)
       let result1 = store.get('foo')
       store.put('bar', handlerA)
       let result2 = store.get('baz')
@@ -69,7 +79,7 @@ describe('Store', () => {
     })
 
     it('returns a new array every time', () => {
-      let store = new Store(match)
+      let store = new Store(Handler, match)
       let foo1 = store.get('foo')
       let foo2 = store.get('foo')
       store.put('bar', handlerA)
@@ -92,7 +102,7 @@ describe('Store', () => {
     })
 
     it('returns an array of all the records when no needle provided', () => {
-      let store = new Store(match)
+      let store = new Store(Handler, match)
       store.put('foo', handlerA)
       store.put('bar', handlerB)
       let result1 = store.get()
@@ -100,18 +110,18 @@ describe('Store', () => {
       let result2 = store.get()
 
       expect(result1).toEqual([
-        new Record(store, 'foo', handlerA),
-        new Record(store, 'bar', handlerB),
+        Handler(store, 'foo', handlerA),
+        Handler(store, 'bar', handlerB),
       ])
       expect(result2).toEqual([
-        new Record(store, 'foo', handlerA),
-        new Record(store, 'bar', handlerB),
-        new Record(store, '*', handlerB),
+        Handler(store, 'foo', handlerA),
+        Handler(store, 'bar', handlerB),
+        Handler(store, '*', handlerB),
       ])
     })
 
     it('returns an array of matching records', () => {
-      let store = new Store(match)
+      let store = new Store(Handler, match)
       store.put('foo', handlerA)
       store.put('bar', handlerB)
       store.put('bar', handlerA)
@@ -123,36 +133,37 @@ describe('Store', () => {
       let asterisk = store.get('*')
 
       expect(foo).toEqual([
-        new Record(store, 'foo', handlerA),
-        new Record(store, '*', handlerB),
+        Handler(store, 'foo', handlerA),
+        Handler(store, '*', handlerB),
       ])
       expect(bar).toEqual([
-        new Record(store, 'bar', handlerB),
-        new Record(store, 'bar', handlerA),
-        new Record(store, '*', handlerB),
+        Handler(store, 'bar', handlerB),
+        Handler(store, 'bar', handlerA),
+        Handler(store, '*', handlerB),
       ])
-      expect(baz).toEqual([new Record(store, '*', handlerB)])
+      expect(baz).toEqual([Handler(store, '*', handlerB)])
       expect(asterisk).toEqual([
-        new Record(store, 'foo', handlerA),
-        new Record(store, 'bar', handlerB),
-        new Record(store, 'bar', handlerA),
-        new Record(store, '*', handlerB),
+        Handler(store, 'foo', handlerA),
+        Handler(store, 'bar', handlerB),
+        Handler(store, 'bar', handlerA),
+        Handler(store, '*', handlerB),
       ])
     })
   })
 
   describe('#put()', () => {
     it('returns the created record', () => {
-      let store = new Store(match)
-      let record = store.put('foo', handlerA)
+      let store = new Store(Handler, match)
+      let result = store.put('foo', handlerA)
+      let expected = Handler(store, 'foo', handlerA)
 
-      expect(record).toEqual(new Record(store, 'foo', handlerA))
+      expect(result).toEqual(expected)
     })
   })
 
   describe('#del()', () => {
     it('deletes matching records', () => {
-      let store = new Store(match)
+      let store = new Store(Handler, match)
       store.put('foo', handlerA)
       let recordB = store.put('bar', handlerA)
       store.put('bar', handlerB)
@@ -160,17 +171,17 @@ describe('Store', () => {
       store.del(recordB)
       let result1 = store.get()
       expect(result1).toEqual([
-        new Record(store, 'foo', handlerA),
-        new Record(store, 'bar', handlerB),
+        Handler(store, 'foo', handlerA),
+        Handler(store, 'bar', handlerB),
       ])
 
       store.del('foo')
       let result2 = store.get()
-      expect(result2).toEqual([new Record(store, 'bar', handlerB)])
+      expect(result2).toEqual([Handler(store, 'bar', handlerB)])
     })
 
     it('deletes all the records when no needle is provided', () => {
-      let store = new Store(match)
+      let store = new Store(Handler, match)
       store.put('foo', handlerA)
       store.put('bar', handlerB)
       store.put('baz', handlerA)
@@ -184,7 +195,7 @@ describe('Store', () => {
   describe('reverse mode', () => {
     describe('#get()', () => {
       it('retrieves records in reverse order', () => {
-        let store = new Store(match, true)
+        let store = new Store(Handler, match, true)
         store.put('foo', handlerA)
         store.put('bar', handlerB)
         store.put('bar', handlerA)
@@ -192,10 +203,10 @@ describe('Store', () => {
         let result = store.get()
 
         expect(result).toEqual([
-          new Record(store, 'baz', handlerB),
-          new Record(store, 'bar', handlerA),
-          new Record(store, 'bar', handlerB),
-          new Record(store, 'foo', handlerA),
+          Handler(store, 'baz', handlerB),
+          Handler(store, 'bar', handlerA),
+          Handler(store, 'bar', handlerB),
+          Handler(store, 'foo', handlerA),
         ])
       })
     })

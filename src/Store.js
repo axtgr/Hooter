@@ -1,12 +1,14 @@
-const Record = require('./Record')
-
-
 module.exports = class Store {
-  constructor(match, reverse) {
-    if (!match || typeof match !== 'function') {
+  constructor(Record, match, reverse) {
+    if (typeof Record !== 'function') {
+      throw new Error('A record constructor is required')
+    }
+
+    if (typeof match !== 'function') {
       throw new Error('A matching function is required')
     }
 
+    this.Record = Record
     this.records = []
     this.match = match
     this.reverse = !!reverse
@@ -17,7 +19,7 @@ module.exports = class Store {
   }
 
   put(key, value) {
-    let record = new Record(this, key, value)
+    let record = new this.Record(this, key, value)
 
     if (this.reverse) {
       this.records.unshift(record)
