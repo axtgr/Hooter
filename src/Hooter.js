@@ -28,15 +28,17 @@ function createEvent(source, name, mode, args, cb) {
 class Hooter {
   constructor(settings) {
     let effectHandlers = Object.assign({}, SETTINGS.effectHandlers, EFFECTS)
-    let state = { hooter: this }
+    let state = {}
 
-    if (settings) {
-      state = settings.state ? Object.assign(state, settings.state) : state
-      effectHandlers = settings.effectHandlers
-        ? Object.assign(effectHandlers, settings.effectHandlers)
-        : state
+    if (settings && settings.state) {
+      state = Object.assign(state, settings.state)
     }
 
+    if (settings && settings.effectHandlers) {
+      effectHandlers = Object.assign(effectHandlers, settings.effectHandlers)
+    }
+
+    state.hooter = this
     settings = Object.assign({}, SETTINGS, settings, { effectHandlers, state })
 
     this.settings = settings
