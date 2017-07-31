@@ -14,9 +14,7 @@
     "event emitter",
     "emitter",
     "events",
-    "generators",
-    "rxjs",
-    "rx"
+    "generators"
   ],
   "scripts": {
     "test": "mocha tests",
