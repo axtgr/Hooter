@@ -49,6 +49,29 @@ describe('Handler', () => {
     expect(obj.fn.calls[0].context).toBe(context)
   })
 
+  it('returns a generator function when fn is a generator function', () => {
+    /* eslint-disable require-yield */
+
+    let store = { del: () => {} }
+    let spy = expect.createSpy()
+    let fn = function* () {
+      return spy.apply(this, arguments)
+    }
+    let arg = {}
+    let context = {}
+    let handler = Handler(store, 'key', fn)
+
+    let result = handler.call(context, arg)
+
+    expect(result).toBeA(Object)
+    expect(result.next).toBeA(Function)
+
+    result.next()
+
+    expect(spy).toHaveBeenCalledWith(arg)
+    expect(spy.calls[0].context).toBe(context)
+  })
+
   it('can be used as a constructor', () => {
     let store = { del: () => {} }
     let fn = () => {}

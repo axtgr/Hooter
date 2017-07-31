@@ -1,3 +1,5 @@
+const GENERATOR_PROTO = Object.getPrototypeOf(function* () {})
+
 function unhook() {
   this.store.del(this)
 }
@@ -11,8 +13,16 @@ module.exports = function Handler(store, key, fn) {
     throw new Error('fn must be a function')
   }
 
-  function handler() {
-    return fn.apply(this, arguments)
+  let handler
+
+  if (GENERATOR_PROTO.isPrototypeOf(fn)) {
+    handler = function* () {
+      return yield* fn.apply(this, arguments)
+    }
+  } else {
+    handler = function() {
+      return fn.apply(this, arguments)
+    }
   }
 
   handler.store = store
