@@ -41,7 +41,6 @@
   },
   "dependencies": {
     "corrie": "^0.5.1",
-    "rxjs": "^5.3.1",
     "wildcard-match": "^1.0.0"
   }
 }
