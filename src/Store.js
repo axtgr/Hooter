@@ -19,6 +19,10 @@ module.exports = class Store {
   }
 
   put(key, value) {
+    if (typeof key === 'undefined') {
+      throw new Error('A key must not be undefined')
+    }
+
     let record = new this.Record(this, key, value)
 
     if (this.reverse) {
