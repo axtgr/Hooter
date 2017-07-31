@@ -38,15 +38,15 @@ describe('Handler', () => {
 
   it('when called, invokes fn with proper args and context', () => {
     let store = { del: () => {} }
-    let obj = { fn: expect.createSpy() }
+    let fn = expect.createSpy()
     let arg = {}
     let context = {}
-    let handler = Handler(store, 'key', obj.fn)
+    let handler = Handler(store, 'key', fn)
 
     handler.call(context, arg)
 
-    expect(obj.fn).toHaveBeenCalled(arg)
-    expect(obj.fn.calls[0].context).toBe(context)
+    expect(fn).toHaveBeenCalled(arg)
+    expect(fn.calls[0].context).toBe(context)
   })
 
   it('returns a generator function when fn is a generator function', () => {

@@ -101,7 +101,7 @@ describe('Store', () => {
       expect(all1).toNotBe(all2)
     })
 
-    it('returns an array of all the records when no needle provided', () => {
+    it('returns an array of all the records when no needle is provided', () => {
       let store = new Store(Handler, match)
       store.put('foo', handlerA)
       store.put('bar', handlerB)
@@ -159,6 +159,12 @@ describe('Store', () => {
 
       expect(result).toEqual(expected)
     })
+
+    it('throws an error when key is undefined', () => {
+      let store = new Store(Handler, match)
+
+      expect(() => store.put(undefined, () => {})).toThrow()
+    })
   })
 
   describe('#del()', () => {
@@ -192,23 +198,55 @@ describe('Store', () => {
     })
   })
 
-  describe('reverse mode', () => {
-    describe('#get()', () => {
-      it('retrieves records in reverse order', () => {
-        let store = new Store(Handler, match, true)
-        store.put('foo', handlerA)
-        store.put('bar', handlerB)
-        store.put('bar', handlerA)
-        store.put('baz', handlerB)
-        let result = store.get()
+  it('works in reverse mode', () => {
+    let store = new Store(Handler, match, true)
+    store.put('foo', handlerA)
+    store.put('bar', handlerB)
+    store.put('bar', handlerA)
+    store.put('baz', handlerB)
+    let result = store.get()
 
-        expect(result).toEqual([
-          Handler(store, 'baz', handlerB),
-          Handler(store, 'bar', handlerA),
-          Handler(store, 'bar', handlerB),
-          Handler(store, 'foo', handlerA),
-        ])
-      })
+    expect(result).toEqual([
+      Handler(store, 'baz', handlerB),
+      Handler(store, 'bar', handlerA),
+      Handler(store, 'bar', handlerB),
+      Handler(store, 'foo', handlerA),
+    ])
+  })
+
+  it('works with non-string keys', () => {
+    let store = new Store(Handler, match)
+    let entries = [
+      [{}, () => {}],
+      [322, () => {}],
+      [Symbol('key3'), () => {}],
+      [null, () => {}],
+    ]
+
+    entries.forEach(([key, value]) => {
+      store.put(key, value)
     })
+
+    entries.forEach(([key, value]) => {
+      let result = store.get(key)
+
+      expect(result).toBeA(Array)
+      expect(result.length).toEqual(1)
+      expect(result[0]).toBeA(Function)
+      expect(result[0].fn).toBe(value)
+    })
+
+    let records = store.get()
+
+    expect(records).toBeA(Array)
+    expect(records.length).toEqual(4)
+    expect(records[0]).toBeA(Function)
+    expect(records[0].fn).toBe(entries[0][1])
+    expect(records[1]).toBeA(Function)
+    expect(records[1].fn).toBe(entries[1][1])
+    expect(records[2]).toBeA(Function)
+    expect(records[2].fn).toBe(entries[2][1])
+    expect(records[3]).toBeA(Function)
+    expect(records[3].fn).toBe(entries[3][1])
   })
 })
