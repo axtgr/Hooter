@@ -16,6 +16,8 @@ const EFFECTS = {
 
 function createEvent(tooter, name, mode, args, cb) {
   args = args || []
+  mode = mode || 'auto'
+
   let event = { name, mode, args, tooter }
 
   if (cb) {
@@ -58,6 +60,9 @@ class Hooter {
   }
 
   lift() {
+    // NEEDS OPTIMIZATION
+    // The clone here undergoes a whole construction process
+    // and is then never used directly
     let clone = new this.constructor(this.settings)
     clone.origin = this
     return clone
@@ -71,7 +76,7 @@ class Hooter {
 
   register(name, mode, transform) {
     if (this.origin) {
-      return this.origin.register(name, mode)
+      return this.origin.register(name, mode, transform)
     }
 
     if (typeof name !== 'string' || !name.length) {
@@ -201,8 +206,7 @@ class Hooter {
     // event and then passes it to #next(), which does the delegation
 
     let registeredEvent = this.events[eventName]
-    let mode = 'auto'
-    let transform
+    let mode, transform
 
     if (registeredEvent) {
       mode = registeredEvent.mode
