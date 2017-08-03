@@ -69,7 +69,7 @@ class Hooter {
     return clone
   }
 
-  register(name, mode) {
+  register(name, mode, transform) {
     if (this.origin) {
       return this.origin.register(name, mode)
     }
@@ -88,7 +88,11 @@ class Hooter {
       )
     }
 
-    this.events[name] = { mode }
+    if (transform && typeof transform !== 'function') {
+      throw new Error('Transform must be a function')
+    }
+
+    this.events[name] = { mode, transform }
   }
 
   handlers(needle) {
@@ -193,11 +197,23 @@ class Hooter {
   }
 
   _toot(eventName, args, cb) {
-    // Do not delegate to the origin because this method creates a source-bound
+    // Do not delegate to the origin because this method creates a tooter-bound
     // event and then passes it to #next(), which does the delegation
+
     let registeredEvent = this.events[eventName]
-    let mode = registeredEvent ? registeredEvent.mode : 'auto'
+    let mode = 'auto'
+    let transform
+
+    if (registeredEvent) {
+      mode = registeredEvent.mode
+    }
+
     let event = createEvent(this.tooter, eventName, mode, args, cb)
+
+    if (transform) {
+      event = transform.call(this, event)
+    }
+
     return this.next(event)
   }
 
