@@ -14,9 +14,9 @@ const EFFECTS = {
   hook: hookHandler,
 }
 
-function createEvent(source, name, mode, args, cb) {
+function createEvent(tooter, name, mode, args, cb) {
   args = args || []
-  let event = { name, mode, args, source }
+  let event = { name, mode, args, tooter }
 
   if (cb) {
     event.cb = cb
@@ -63,9 +63,9 @@ class Hooter {
     return clone
   }
 
-  bind(source) {
+  bind(tooter) {
     let clone = this.lift()
-    clone.source = source
+    clone.tooter = tooter
     return clone
   }
 
@@ -197,7 +197,7 @@ class Hooter {
     // event and then passes it to #next(), which does the delegation
     let registeredEvent = this.events[eventName]
     let mode = registeredEvent ? registeredEvent.mode : 'auto'
-    let event = createEvent(this.source, eventName, mode, args, cb)
+    let event = createEvent(this.tooter, eventName, mode, args, cb)
     return this.next(event)
   }
 
