@@ -1,55 +1,51 @@
 module.exports = class Store {
-  constructor(Record, match, reverse) {
-    if (typeof Record !== 'function') {
-      throw new Error('A record constructor is required')
-    }
-
+  constructor(match) {
     if (typeof match !== 'function') {
       throw new Error('A matching function is required')
     }
 
-    this.Record = Record
-    this.records = []
+    this.startItems = []
+    this.items = []
+    this.endItems = []
     this.match = match
-    this.reverse = !!reverse
   }
 
-  matchRecord(record, needle) {
-    return record === needle || this.match(record.key, needle)
+  prepend(item) {
+    this.startItems.push(item)
   }
 
-  put(key, value) {
-    if (typeof key === 'undefined') {
-      throw new Error('A key must not be undefined')
-    }
+  add(item) {
+    this.items.push(item)
+  }
 
-    let record = new this.Record(this, key, value)
-
-    if (this.reverse) {
-      this.records.unshift(record)
-    } else {
-      this.records.push(record)
-    }
-
-    return record
+  append(item) {
+    this.endItems.unshift(item)
   }
 
   get(needle) {
     if (typeof needle === 'undefined') {
-      return this.records.slice()
+      return this.startItems.concat(this.items, this.endItems)
     }
 
-    return this.records.filter((record) => {
-      return this.matchRecord(record, needle)
+    return this.startItems.concat(this.items, this.endItems).filter((item) => {
+      return this.match(item, needle)
     })
   }
 
   del(needle) {
     if (typeof needle === 'undefined') {
-      this.records = []
+      this.startItems = []
+      this.items = []
+      this.endItems = []
     } else {
-      this.records = this.records.filter((record) => {
-        return !this.matchRecord(record, needle)
+      this.startItems = this.startItems.filter((item) => {
+        return !this.match(item, needle)
+      })
+      this.items = this.items.filter((item) => {
+        return !this.match(item, needle)
+      })
+      this.endItems = this.endItems.filter((item) => {
+        return !this.match(item, needle)
       })
     }
   }

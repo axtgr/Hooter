@@ -1,3 +1,7 @@
+const Routine = require('./Routine')
+const { handler: corrieForkHandler } = require('corrie/src/effects/fork')
+
+
 function throwHandler(effect, execution) {
   let err = effect.err
 
@@ -14,9 +18,13 @@ function throwHandler(effect, execution) {
 
 function tootHandler(effect, execution) {
   let { event, args, cb } = effect
-  let hooter = execution.state.hooter
-  let value = hooter._toot(event, args, cb)
-  return { effect: 'resolve', value }
+  let hooter = execution.routine.hooter
+
+  if (!hooter) {
+    throw new Error('Routine hooter is undefined')
+  }
+
+  return hooter._toot(event, args, cb)
 }
 
 function toot(event, ...args) {
@@ -28,28 +36,41 @@ function tootWith(event, cb, ...args) {
 }
 
 function hookHandler(effect, execution) {
-  let { event, mode, handler } = effect
-  let hooter = execution.state.hooter
+  let { event, mode, fn } = effect
+  let hooter = execution.routine.hooter
+
+  if (!hooter) {
+    throw new Error('Routine hooter is undefined')
+  }
 
   if (mode === 'start') {
-    return hooter.hookStart(event, handler)
+    return hooter.hookStart(event, fn)
   } else if (mode === 'end') {
-    return hooter.hookEnd(event, handler)
+    return hooter.hookEnd(event, fn)
   } else {
-    return hooter.hook(event, handler)
+    return hooter.hook(event, fn)
   }
 }
 
-function hook(event, handler) {
-  return { effect: 'hook', event, handler }
+function hook(event, fn) {
+  return { effect: 'hook', event, fn }
 }
 
-function hookStart(event, handler) {
-  return { effect: 'hook', event, mode: 'start', handler }
+function hookStart(event, fn) {
+  return { effect: 'hook', event, mode: 'start', fn }
 }
 
-function hookEnd(event, handler) {
-  return { effect: 'hook', event, mode: 'end', handler }
+function hookEnd(event, fn) {
+  return { effect: 'hook', event, mode: 'end', fn }
+}
+
+function forkHandler(effect, execution) {
+  let { routine, args, mode } = effect
+
+  routine = Routine(execution.routine.hooter, routine)
+  effect = { routine, args, mode }
+
+  return corrieForkHandler(effect, execution)
 }
 
 module.exports = {
@@ -61,4 +82,5 @@ module.exports = {
   hook,
   hookStart,
   hookEnd,
+  forkHandler,
 }

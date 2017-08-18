@@ -23,7 +23,7 @@ describe('Hooter', () => {
       expect(b).toBeA(Hooter).toNotBe(a)
     })
 
-    it('the clone delegates hooks and toots to the origin')
+    it('the clone delegates hooks and toots to the source')
   })
 
   describe('#bind()', () => {
@@ -32,15 +32,45 @@ describe('Hooter', () => {
       let b = a.bind()
 
       expect(b).toBeA(Hooter).toNotBe(a)
-      expect(b.origin).toBe(a)
+      expect(b.source).toBe(a)
     })
 
-    it('sets the tooter property of the clone to the passed argument', () => {
-      let tooter = {}
+    it('sets the owner property of the clone to the passed argument', () => {
+      let owner = {}
       let a = new Hooter()
-      let b = a.bind(tooter)
+      let b = a.bind(owner)
 
-      expect(b.source).toBe(tooter)
+      expect(b.owner).toBe(owner)
+    })
+
+    it('events tooted via the clone have a proper source defined', () => {
+      let owner = {}
+      let spy = expect.createSpy()
+      let clone = new Hooter().bind(owner)
+
+      clone.hook('foo', spy)
+      clone.toot('foo')
+
+      expect(spy).toHaveBeenCalled()
+      expect(spy.calls[0].context.tooter).toBe(owner)
+    })
+
+    it('events tooted via the clone using an effect have a proper source defined', () => {
+      let owner = {}
+      let spy = expect.createSpy()
+      let clone = new Hooter().bind(owner)
+
+      clone.hook('foo', function* () {
+        yield {
+          effect: 'toot',
+          event: 'bar',
+        }
+      })
+      clone.hook('bar', spy)
+      clone.toot('foo')
+
+      expect(spy).toHaveBeenCalled()
+      expect(spy.calls[0].context.tooter).toBe(owner)
     })
   })
 
@@ -67,8 +97,8 @@ describe('Hooter', () => {
       let hooter = new Hooter()
 
       expect(() => hooter.register('foo')).toThrow()
-      expect(() => hooter.register('foo', 'bar')).toThrow()
-      expect(() => hooter.register('foo', 1)).toThrow()
+      expect(() => hooter.register('bar', 'bar')).toThrow()
+      expect(() => hooter.register('baz', 1)).toThrow()
     })
 
     it('registers the provided event', () => {
