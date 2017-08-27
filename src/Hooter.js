@@ -1,7 +1,7 @@
 const corrie = require('corrie')
-const wildcardMatch = require('wildcard-match')
 const Routine = require('./Routine')
 const HandlerStore = require('./Store')
+const { createEvent, match, unhook } = require('./utils')
 const {
   throwHandler,
   tootHandler,
@@ -18,35 +18,6 @@ const EFFECTS = {
   toot: tootHandler,
   hook: hookHandler,
   fork: forkHandler,
-}
-
-function createEvent(tooter, name, mode, args, cb) {
-  args = args || []
-  mode = mode || 'auto'
-
-  let event = { name, mode, args }
-
-  if (tooter) {
-    event.tooter = tooter
-  }
-
-  if (cb) {
-    event.cb = cb
-  }
-
-  return event
-}
-
-function match(a, b) {
-  return wildcardMatch('.', a, b)
-}
-
-function unhook() {
-  if (!this.hooter) {
-    throw new Error('A hooter is not defined on the routine')
-  }
-
-  this.hooter.unhook(this)
 }
 
 class Hooter {
