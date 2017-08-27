@@ -108,23 +108,23 @@ class Hooter {
     return this.store.get(needle)
   }
 
-  _hookHandler(handler, mode) {
+  _hookHandler(handler, priorityMode) {
     if (this.source) {
-      return this.source._hookHandler(handler, mode)
+      return this.source._hookHandler(handler, priorityMode)
     }
 
     handler.store = this.store
 
-    if (mode === 'start') {
+    if (priorityMode === 'start') {
       return this.store.prepend(handler)
-    } else if (mode === 'end') {
+    } else if (priorityMode === 'end') {
       return this.store.append(handler)
     } else {
       return this.store.add(handler)
     }
   }
 
-  _hook(eventName, fn, mode, after) {
+  _hook(eventName, fn, priorityMode, routineType) {
     // Do not delegate to the source because this method creates an owner-bound
     // handler and then passes it to #_hookHandler(), which does the delegation
 
@@ -135,16 +135,14 @@ class Hooter {
       throw new TypeError('An event name must be a string')
     }
 
-    if (typeof fn !== 'function') {
-      throw new TypeError('Fn must be a function')
-    }
-
-    let handler = Routine(this, fn, after)
+    let handler = Routine(this, fn, routineType)
 
     handler.key = eventName
     handler.unhook = unhook
 
-    return this._hookHandler(handler, mode)
+    this._hookHandler(handler, priorityMode)
+
+    return handler
   }
 
   hook(eventName, fn) {
@@ -160,15 +158,27 @@ class Hooter {
   }
 
   hookAfter(eventName, fn) {
-    return this._hook(eventName, fn, null, true)
+    return this._hook(eventName, fn, null, 'after')
   }
 
   hookStartAfter(eventName, fn) {
-    return this._hook(eventName, fn, 'start', true)
+    return this._hook(eventName, fn, 'start', 'after')
   }
 
   hookEndAfter(eventName, fn) {
-    return this._hook(eventName, fn, 'end', true)
+    return this._hook(eventName, fn, 'end', 'after')
+  }
+
+  hookResult(eventName) {
+    return this._hook(eventName, null, null, 'observe')
+  }
+
+  hookStartResult(eventName) {
+    return this._hook(eventName, null, 'start', 'observe')
+  }
+
+  hookEndResult(eventName) {
+    return this._hook(eventName, null, 'end', 'observe')
   }
 
   unhook(handler) {

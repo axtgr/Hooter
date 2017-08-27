@@ -36,14 +36,14 @@ function tootWith(event, cb, ...args) {
 }
 
 function hookHandler(effect, execution) {
-  let { event, fn, mode, after } = effect
+  let { event, fn, priority, type } = effect
   let hooter = execution.routine.hooter
 
   if (!hooter) {
     throw new Error('Routine hooter is undefined')
   }
 
-  return hooter._hook(event, fn, mode, after)
+  return hooter._hook(event, fn, priority, type)
 }
 
 function hook(event, fn) {
@@ -51,23 +51,35 @@ function hook(event, fn) {
 }
 
 function hookStart(event, fn) {
-  return { effect: 'hook', event, mode: 'start', fn }
+  return { effect: 'hook', event, priority: 'start', fn }
 }
 
 function hookEnd(event, fn) {
-  return { effect: 'hook', event, mode: 'end', fn }
+  return { effect: 'hook', event, priority: 'end', fn }
 }
 
 function hookAfter(event, fn) {
-  return { effect: 'hook', event, after: true, fn }
+  return { effect: 'hook', event, type: 'after', fn }
 }
 
 function hookStartAfter(event, fn) {
-  return { effect: 'hook', event, mode: 'start', after: true, fn }
+  return { effect: 'hook', event, priority: 'start', type: 'after', fn }
 }
 
 function hookEndAfter(event, fn) {
-  return { effect: 'hook', event, mode: 'end', after: true, fn }
+  return { effect: 'hook', event, priority: 'end', type: 'after', fn }
+}
+
+function hookResult(event) {
+  return { effect: 'hook', event, type: 'observe' }
+}
+
+function hookStartResult(event) {
+  return { effect: 'hook', event, priority: 'start', type: 'observe' }
+}
+
+function hookEndResult(event) {
+  return { effect: 'hook', event, priority: 'end', type: 'observe' }
 }
 
 function forkHandler(effect, execution) {
@@ -91,5 +103,8 @@ module.exports = {
   hookAfter,
   hookStartAfter,
   hookEndAfter,
+  hookResult,
+  hookStartResult,
+  hookEndResult,
   forkHandler,
 }

@@ -8,6 +8,9 @@ const {
   hookAfter,
   hookStartAfter,
   hookEndAfter,
+  hookResult,
+  hookStartResult,
+  hookEndResult,
 } = require('./src/effects')
 
 
@@ -20,6 +23,9 @@ module.exports = {
   hookAfter,
   hookStartAfter,
   hookEndAfter,
+  hookResult,
+  hookStartResult,
+  hookEndResult,
 }
 
 Object.keys(corrieEffects).forEach((key) => {
