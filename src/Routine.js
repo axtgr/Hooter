@@ -1,6 +1,6 @@
 const GENERATOR_PROTO = Object.getPrototypeOf(function* () {})
 
-module.exports = function Routine(hooter, fn) {
+module.exports = function Routine(hooter, fn, after) {
   if (!hooter) {
     throw new Error('A hooter is required')
   }
@@ -9,9 +9,20 @@ module.exports = function Routine(hooter, fn) {
     throw new Error('fn must be a function')
   }
 
+  let isGenerator = GENERATOR_PROTO.isPrototypeOf(fn)
   let routine
 
-  if (GENERATOR_PROTO.isPrototypeOf(fn)) {
+  if (after && isGenerator) {
+    routine = function* (...args) {
+      let result = yield { effect: 'next', args }
+      return yield* fn.call(this, result)
+    }
+  } else if (after) {
+    routine = function* (...args) {
+      let result = yield { effect: 'next', args }
+      return fn.call(this, result)
+    }
+  } else if (isGenerator) {
     routine = function* () {
       return yield* fn.apply(this, arguments)
     }

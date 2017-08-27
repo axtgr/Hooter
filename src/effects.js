@@ -36,20 +36,14 @@ function tootWith(event, cb, ...args) {
 }
 
 function hookHandler(effect, execution) {
-  let { event, mode, fn } = effect
+  let { event, fn, mode, after } = effect
   let hooter = execution.routine.hooter
 
   if (!hooter) {
     throw new Error('Routine hooter is undefined')
   }
 
-  if (mode === 'start') {
-    return hooter.hookStart(event, fn)
-  } else if (mode === 'end') {
-    return hooter.hookEnd(event, fn)
-  } else {
-    return hooter.hook(event, fn)
-  }
+  return hooter._hook(event, fn, mode, after)
 }
 
 function hook(event, fn) {
@@ -62,6 +56,18 @@ function hookStart(event, fn) {
 
 function hookEnd(event, fn) {
   return { effect: 'hook', event, mode: 'end', fn }
+}
+
+function hookAfter(event, fn) {
+  return { effect: 'hook', event, after: true, fn }
+}
+
+function hookStartAfter(event, fn) {
+  return { effect: 'hook', event, mode: 'start', after: true, fn }
+}
+
+function hookEndAfter(event, fn) {
+  return { effect: 'hook', event, mode: 'end', after: true, fn }
 }
 
 function forkHandler(effect, execution) {
@@ -82,5 +88,8 @@ module.exports = {
   hook,
   hookStart,
   hookEnd,
+  hookAfter,
+  hookStartAfter,
+  hookEndAfter,
   forkHandler,
 }

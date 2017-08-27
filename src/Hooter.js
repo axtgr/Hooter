@@ -153,7 +153,7 @@ class Hooter {
     }
   }
 
-  _hook(eventName, fn, mode) {
+  _hook(eventName, fn, mode, after) {
     // Do not delegate to the source because this method creates an owner-bound
     // handler and then passes it to #_hookHandler(), which does the delegation
 
@@ -168,7 +168,7 @@ class Hooter {
       throw new TypeError('Fn must be a function')
     }
 
-    let handler = Routine(this, fn)
+    let handler = Routine(this, fn, after)
 
     handler.key = eventName
     handler.unhook = unhook
@@ -186,6 +186,18 @@ class Hooter {
 
   hookEnd(eventName, fn) {
     return this._hook(eventName, fn, 'end')
+  }
+
+  hookAfter(eventName, fn) {
+    return this._hook(eventName, fn, null, true)
+  }
+
+  hookStartAfter(eventName, fn) {
+    return this._hook(eventName, fn, 'start', true)
+  }
+
+  hookEndAfter(eventName, fn) {
+    return this._hook(eventName, fn, 'end', true)
   }
 
   unhook(handler) {
