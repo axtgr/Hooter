@@ -1,7 +1,7 @@
 const corrie = require('corrie')
-const Routine = require('./Routine')
 const HandlerStore = require('./Store')
-const { createEvent, match, unhook } = require('./utils')
+const HooterBase = require('./HooterBase')
+const HooterProxy = require('./HooterProxy')
 const {
   throwHandler,
   tootHandler,
@@ -20,8 +20,10 @@ const EFFECTS = {
   fork: forkHandler,
 }
 
-class Hooter {
+class Hooter extends HooterBase {
   constructor(settings) {
+    super()
+
     let effectHandlers = Object.assign({}, SETTINGS.effectHandlers, EFFECTS)
     let state = {}
 
@@ -42,39 +44,19 @@ class Hooter {
     this.events = {}
   }
 
-  match(a, b) {
-    return match(a, b)
+  proxy() {
+    return new HooterProxy(this)
   }
 
-  matchHandler(handler, needle) {
-    return handler === needle || match(handler.key, needle)
+  getEvent(name) {
+    return this.events[name]
   }
 
-  wrap(fn) {
-    let routine = Routine(this, fn)
-    return this.corrie(routine)
-  }
-
-  lift() {
-    // NEEDS OPTIMIZATION
-    // The clone here undergoes a whole construction process
-    // and is then never used directly
-    let clone = new this.constructor(this.settings)
-    clone.source = this
-    return clone
-  }
-
-  bind(owner) {
-    let clone = this.lift()
-    clone.owner = owner
-    return clone
+  handlers(needle) {
+    return this.store.get(needle)
   }
 
   register(name, mode) {
-    if (this.source) {
-      return this.source.register(name, mode)
-    }
-
     if (typeof name !== 'string' || !name.length) {
       throw new Error('An event name must be a non-empty string')
     }
@@ -92,126 +74,23 @@ class Hooter {
     this.events[name] = { mode }
   }
 
-  getEvent(name) {
-    if (this.source) {
-      return this.source.getEvent(name)
-    }
-
-    return this.events[name]
-  }
-
-  handlers(needle) {
-    if (this.source) {
-      return this.source.handlers(needle)
-    }
-
-    return this.store.get(needle)
-  }
-
-  _hookHandler(handler, priorityMode) {
-    if (this.source) {
-      return this.source._hookHandler(handler, priorityMode)
-    }
-
+  _hookHandler(handler, priority) {
     handler.store = this.store
 
-    if (priorityMode === 'start') {
+    if (priority === 'start') {
       return this.store.prepend(handler)
-    } else if (priorityMode === 'end') {
+    } else if (priority === 'end') {
       return this.store.append(handler)
     } else {
       return this.store.add(handler)
     }
   }
 
-  _hook(eventName, fn, priorityMode, routineType) {
-    // Do not delegate to the source because this method creates an owner-bound
-    // handler and then passes it to #_hookHandler(), which does the delegation
-
-    if (!fn && typeof eventName === 'function') {
-      fn = eventName
-      eventName = '**'
-    } else if (typeof eventName !== 'string') {
-      throw new TypeError('An event name must be a string')
-    }
-
-    let handler = Routine(this, fn, routineType)
-
-    handler.key = eventName
-    handler.unhook = unhook
-
-    this._hookHandler(handler, priorityMode)
-
-    return handler
-  }
-
-  hook(eventName, fn) {
-    return this._hook(eventName, fn)
-  }
-
-  hookStart(eventName, fn) {
-    return this._hook(eventName, fn, 'start')
-  }
-
-  hookEnd(eventName, fn) {
-    return this._hook(eventName, fn, 'end')
-  }
-
-  hookAfter(eventName, fn) {
-    return this._hook(eventName, fn, null, 'after')
-  }
-
-  hookStartAfter(eventName, fn) {
-    return this._hook(eventName, fn, 'start', 'after')
-  }
-
-  hookEndAfter(eventName, fn) {
-    return this._hook(eventName, fn, 'end', 'after')
-  }
-
-  hookResult(eventName) {
-    return this._hook(eventName, null, null, 'observe')
-  }
-
-  hookStartResult(eventName) {
-    return this._hook(eventName, null, 'start', 'observe')
-  }
-
-  hookEndResult(eventName) {
-    return this._hook(eventName, null, 'end', 'observe')
-  }
-
   unhook(handler) {
-    if (this.source) {
-      return this.source.unhook(handler)
-    }
-
     this.store.del(handler)
   }
 
-  next(event) {
-    if (this.source) {
-      return this.source.next(event)
-    }
-
-    if (!event || typeof event !== 'object') {
-      throw new TypeError('An event must be an object')
-    }
-
-    if (typeof event.name !== 'string') {
-      throw new TypeError('An event name must be a string')
-    }
-
-    if (!MODES.includes(event.mode)) {
-      throw new Error(
-        `An event mode must be one of the following: ${MODES_STRING}`
-      )
-    }
-
-    if (event.cb && typeof event.cb !== 'function') {
-      throw new TypeError('An event callback must be a function')
-    }
-
+  _tootEvent(event) {
     let handlers = this.handlers(event.name)
 
     if (event.cb) {
@@ -225,40 +104,6 @@ class Hooter {
     } else {
       return this.corrie[event.mode](...handlers).apply(event, event.args)
     }
-  }
-
-  _toot(eventName, args, cb) {
-    // Do not delegate to the source because this method creates an owner-bound
-    // event and then passes it to #next(), which does the delegation
-
-    let userEvent
-
-    if (eventName && typeof eventName === 'object') {
-      userEvent = eventName
-      eventName = userEvent.name
-    }
-
-    if (typeof eventName !== 'string' || !eventName.length) {
-      throw new Error('An event name must be a non-empty string')
-    }
-
-    let registeredEvent = this.getEvent(eventName)
-    let { mode } = registeredEvent || {}
-    let event = createEvent(this.owner, eventName, mode, args, cb)
-
-    if (userEvent) {
-      Object.assign(event, userEvent)
-    }
-
-    return this.next(event)
-  }
-
-  toot(event, ...args) {
-    return this._toot(event, args)
-  }
-
-  tootWith(eventName, cb, ...args) {
-    return this._toot(eventName, args, cb)
   }
 }
 
