@@ -11,7 +11,7 @@ const {
   hookResult,
   hookStartResult,
   hookEndResult,
-} = require('./src/effects')
+} = require('./dist/effects')
 
 
 module.exports = {

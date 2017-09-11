@@ -1,28 +1,24 @@
-module.exports = class Store {
-  constructor(match) {
-    if (typeof match !== 'function') {
-      throw new Error('A matching function is required')
-    }
+class Store {
+  private startItems: any[] = []
+  private items: any[] = []
+  private endItems: any[] = []
 
-    this.startItems = []
-    this.items = []
-    this.endItems = []
-    this.match = match
+  constructor(private match: (item: any, needle: any) => boolean) {
   }
 
-  prepend(item) {
+  prepend(item: any): void {
     this.startItems.push(item)
   }
 
-  add(item) {
+  add(item: any): void {
     this.items.push(item)
   }
 
-  append(item) {
+  append(item: any): void {
     this.endItems.unshift(item)
   }
 
-  get(needle) {
+  get(needle?: any): any {
     if (typeof needle === 'undefined') {
       return this.startItems.concat(this.items, this.endItems)
     }
@@ -32,7 +28,7 @@ module.exports = class Store {
     })
   }
 
-  del(needle) {
+  del(needle?: any): void {
     if (typeof needle === 'undefined') {
       this.startItems = []
       this.items = []
@@ -50,3 +46,5 @@ module.exports = class Store {
     }
   }
 }
+
+export default Store

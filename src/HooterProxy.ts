@@ -1,18 +1,22 @@
-const HooterBase = require('./HooterBase')
+import { ExecutionMode } from 'corrie';
+import HooterBase, { Handler, Priority } from './HooterBase'
+import Hooter from './Hooter'
+import { Event, UserEvent, RegisteredEvent } from 'src/events';
 
 
 class HooterProxy extends HooterBase {
-  constructor(source) {
+  owner: any
+
+  constructor(public source: HooterBase) {
     super()
-    this.source = source
     this.corrie = this.source.corrie
   }
 
-  proxy() {
+  proxy(): HooterProxy {
     return new HooterProxy(this)
   }
 
-  getEvent(name) {
+  getEvent(name: string) {
     if (this.source) {
       return this.source.getEvent(name)
     }
@@ -22,7 +26,7 @@ class HooterProxy extends HooterBase {
     )
   }
 
-  handlers(needle) {
+  handlers(needle: Handler | string) {
     if (this.source) {
       return this.source.handlers(needle)
     }
@@ -32,7 +36,7 @@ class HooterProxy extends HooterBase {
     )
   }
 
-  register(name, mode) {
+  register(name: string, mode: ExecutionMode) {
     if (this.source) {
       return this.source.register(name, mode)
     }
@@ -42,7 +46,7 @@ class HooterProxy extends HooterBase {
     )
   }
 
-  unhook(handler) {
+  unhook(handler: Handler) {
     if (this.source) {
       return this.source.unhook(handler)
     }
@@ -52,7 +56,7 @@ class HooterProxy extends HooterBase {
     )
   }
 
-  _hookHandler(handler, priority) {
+  _hookHandler(handler: Handler, priority: Priority) {
     if (this.source) {
       return this.source._hookHandler(handler, priority)
     }
@@ -62,7 +66,13 @@ class HooterProxy extends HooterBase {
     )
   }
 
-  _tootEvent(event) {
+  protected _createEvent(name: string | UserEvent, args: any[], cb?: Function): Event {
+    let event: Event = super._createEvent(name, args, cb)
+    event.tooter = this.owner
+    return event
+  }
+
+  _tootEvent(event: Event): any {
     if (this.source) {
       return this.source._tootEvent(event)
     }
@@ -73,4 +83,4 @@ class HooterProxy extends HooterBase {
   }
 }
 
-module.exports = HooterProxy
+export { HooterProxy as default, RegisteredEvent }
