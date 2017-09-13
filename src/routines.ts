@@ -1,5 +1,6 @@
 import HooterBase from './HooterBase'
 import HooterProxy from './HooterProxy'
+import { Events } from './events'
 
 
 const GENERATOR_PROTO = Object.getPrototypeOf(function* (): any {})
@@ -11,33 +12,33 @@ const enum Mode {
   Result = 'result'
 }
 
-interface Routine {
+interface Routine<T extends Events> {
   (...args: any[]): any
-  hooter: HooterBase
+  hooter: HooterBase<T>
   owner?: any
   fn?: Function
 }
 
-interface ResultRoutine extends Routine {
+interface ResultRoutine<T extends Events> extends Routine<T> {
   value: any
 }
 
 
-function createResultRoutine(hooter: HooterBase): ResultRoutine {
-  let routine = <ResultRoutine>function* observableResult(...args: any[]): any {
+function createResultRoutine<T extends Events>(hooter: HooterBase<T>): ResultRoutine<T> {
+  let routine = <ResultRoutine<T>>function* observableResult(...args: any[]): any {
     let value: any = yield { effect: 'next', args };
-    (<ResultRoutine>routine).value = value
+    (<ResultRoutine<T>>routine).value = value
     return value
   }
   routine.hooter = hooter
-  routine.owner = (<HooterProxy>hooter).owner
+  routine.owner = (<HooterProxy<T>>hooter).owner
 
   return routine
 }
 
-function createRoutine(hooter: HooterBase, mode: Mode, fn?: Function): Routine {
+function createRoutine<T extends Events>(hooter: HooterBase<T>, mode: Mode, fn?: Function): Routine<T> {
   if (mode === Mode.Result) {
-    return createResultRoutine(hooter)
+    return createResultRoutine<T>(hooter)
   }
 
   if (typeof fn !== 'function') {
@@ -47,30 +48,30 @@ function createRoutine(hooter: HooterBase, mode: Mode, fn?: Function): Routine {
 
   let after = mode === Mode.After
   let isGenerator = GENERATOR_PROTO.isPrototypeOf(fn)
-  let routine: Routine
+  let routine: Routine<T>
 
   if (after && isGenerator) {
-    routine = <Routine>function* (...args: any[]): any {
+    routine = <Routine<T>>function* (...args: any[]): any {
       let result = yield { effect: 'next', args }
       return yield* fn.call(this, result)
     }
   } else if (after) {
-    routine = <Routine>function* (...args: any[]): any {
+    routine = <Routine<T>>function* (...args: any[]): any {
       let result = yield { effect: 'next', args }
       return fn.call(this, result)
     }
   } else if (isGenerator) {
-    routine = <Routine>function* (): any {
+    routine = <Routine<T>>function* (): any {
       return yield* fn.apply(this, arguments)
     }
   } else {
-    routine = <Routine>function (): any {
+    routine = <Routine<T>>function (): any {
       return fn.apply(this, arguments)
     }
   }
 
   routine.hooter = hooter
-  routine.owner = (<HooterProxy>hooter).owner
+  routine.owner = (<HooterProxy<T>>hooter).owner
   routine.fn = fn
 
   return routine

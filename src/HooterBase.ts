@@ -40,7 +40,7 @@ abstract class HooterBase<E extends Events> {
   }
 
   wrap(fn: Function) {
-    let routine = createRoutine(this, RoutineMode.Default, fn)
+    let routine = createRoutine<E>(this, RoutineMode.Default, fn)
     return this.corrie(routine)
   }
 
@@ -56,8 +56,8 @@ abstract class HooterBase<E extends Events> {
 
   abstract unhook(handler: Handler): void
 
-  private _createHandler(routineMode: RoutineMode, event: string, fn?: Function): Handler & Routine {
-    let handler = <Handler & Routine>createRoutine(this, routineMode, fn)
+  private _createHandler(routineMode: RoutineMode, event: string, fn?: Function): Handler & Routine<E> {
+    let handler = <Handler & Routine<E>>createRoutine(this, routineMode, fn)
     handler.key = event
     handler.unhook = () => this.unhook(handler)
     return handler
@@ -101,15 +101,15 @@ abstract class HooterBase<E extends Events> {
   }
 
   hookResult<K extends keyof E>(event: K) {
-    return <Handler & ResultRoutine>this.hookGeneric(RoutineMode.Result, Priority.Normal, event)
+    return <Handler & ResultRoutine<E>>this.hookGeneric(RoutineMode.Result, Priority.Normal, event)
   }
 
   hookStartResult<K extends keyof E>(event: K) {
-    return <Handler & ResultRoutine>this.hookGeneric(RoutineMode.Result, Priority.Start, event)
+    return <Handler & ResultRoutine<E>>this.hookGeneric(RoutineMode.Result, Priority.Start, event)
   }
 
   hookEndResult<K extends keyof E>(event: K) {
-    return <Handler & ResultRoutine>this.hookGeneric(RoutineMode.Result, Priority.End, event)
+    return <Handler & ResultRoutine<E>>this.hookGeneric(RoutineMode.Result, Priority.End, event)
   }
 
   abstract getEvent(name: string): RegisteredEvent | undefined

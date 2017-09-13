@@ -21,7 +21,7 @@ interface HookEffect extends Effect {
 
 interface ForkEffect extends Effect {
   effect: 'fork'
-  routine: Routine
+  routine: Routine<any>
   mode: ExecutionMode
   args: any[]
 }
@@ -66,7 +66,7 @@ function tootWith(event: UserEvent, cb: Function, ...args: any[]): TootEffect {
   return { effect: 'toot', event, args, cb }
 }
 
-function hookHandler(effect: HookEffect, execution: any): Handler & Routine {
+function hookHandler(effect: HookEffect, execution: any): Handler & Routine<any> {
   let { event, fn, priority, routineMode } = effect
   let hooter = <HooterBase<any>>execution.routine.hooter
 
