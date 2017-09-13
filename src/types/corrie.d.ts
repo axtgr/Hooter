@@ -18,13 +18,15 @@ declare module 'corrie' {
       [key: string]: any
     }
 
+    interface EffectHandlers {
+      [key: string]: EffectHandler
+    }
+
     type EffectHandler = (effect: Effect, execution: any) => any
 
     interface Settings {
       mode?: corrie.ExecutionMode
-      effects?: {
-        [key: string]: EffectHandler
-      }
+      effectHandlers?: EffectHandlers
       state?: object
       [key: string]: any
     }

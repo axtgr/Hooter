@@ -49,7 +49,7 @@ function throwHandler(effect: Effect, execution: any): never {
 
 function tootHandler(effect: TootEffect, execution: any): any {
   let { event, args, cb } = effect
-  let hooter = <HooterBase>execution.routine.hooter
+  let hooter = <HooterBase<any>>execution.routine.hooter
 
   if (!hooter) {
     throw new Error('Routine hooter is undefined')
@@ -68,7 +68,7 @@ function tootWith(event: UserEvent, cb: Function, ...args: any[]): TootEffect {
 
 function hookHandler(effect: HookEffect, execution: any): Handler & Routine {
   let { event, fn, priority, routineMode } = effect
-  let hooter = <HooterBase>execution.routine.hooter
+  let hooter = <HooterBase<any>>execution.routine.hooter
 
   if (!hooter) {
     throw new Error('Routine hooter is undefined')

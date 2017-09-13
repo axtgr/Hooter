@@ -1,11 +1,11 @@
 import corrie = require('corrie')
 import {
-  ExecutionMode, DEFAULT_SETTINGS, Settings as CorrieSettings
+  ExecutionMode, EffectHandlers, DEFAULT_SETTINGS, Settings as CorrieSettings
 } from 'corrie'
 import HandlerStore from './Store'
 import HooterBase, { Priority, Handler } from './HooterBase'
 import HooterProxy from './HooterProxy'
-import { RegisteredEvent, Event } from './events'
+import { Event, Events, RegisteredEvent, RegisteredEvents } from './events'
 import {
   throwHandler,
   tootHandler,
@@ -14,43 +14,41 @@ import {
 } from './effects'
 
 
-type Settings = CorrieSettings
-
-interface RegisteredEvents {
-  [key: string]: RegisteredEvent
+interface Settings<T extends Events> extends CorrieSettings {
+  events?: RegisteredEvents<T>
 }
 
-interface State {
-  hooter: Hooter
+interface State<T extends Events> {
+  hooter: Hooter<T>
 }
 
-const EFFECTS = {
+const EFFECTS: EffectHandlers = Object.assign(DEFAULT_SETTINGS.effectHandlers, {
   throw: throwHandler,
   toot: tootHandler,
   hook: hookHandler,
   fork: forkHandler,
-}
+})
 
-class Hooter extends HooterBase {
-  private events: RegisteredEvents = {}
+class Hooter<E extends Events> extends HooterBase<E> {
+  private registeredEvents?: RegisteredEvents<E>
   private store: HandlerStore
-  private settings: Settings
 
-  constructor(userSettings?: Settings) {
+  events: E = <E>{}
+  settings: Settings<E>
+
+  constructor(userSettings?: Settings<E>) {
     super()
 
-    let effectHandlers = Object.assign({}, DEFAULT_SETTINGS.effectHandlers, EFFECTS)
-    let state: State
-    let settings: CorrieSettings
+    let effectHandlers: EffectHandlers = EFFECTS
+    let state: State<E> = { hooter: this }
+    let settings: Settings<E>
 
     if (userSettings && userSettings.state) {
-      state = Object.assign({}, userSettings.state, { hooter: this })
-    } else {
-      state = { hooter: this }
+      state = Object.assign({}, userSettings.state, state)
     }
 
     if (userSettings && userSettings.effectHandlers) {
-      effectHandlers = Object.assign(effectHandlers, userSettings.effectHandlers)
+      effectHandlers = Object.assign({}, effectHandlers, userSettings.effectHandlers)
     }
 
     settings = Object.assign({}, DEFAULT_SETTINGS, userSettings, { effectHandlers, state })
@@ -58,36 +56,31 @@ class Hooter extends HooterBase {
     this.settings = settings
     this.corrie = corrie(settings)
     this.store = new HandlerStore(this.matchHandler)
+
+    if (settings.events) {
+      this.registeredEvents = settings.events
+      this.assignEventToots(settings.events)
+    }
   }
 
-  proxy(): HooterProxy {
-    return new HooterProxy(this)
+  private assignEventToots(events: RegisteredEvents<E>): void {
+    Object.entries(events).forEach(([name, value]) => {
+      this.events[name] = (...args: any[]) => {
+        return this.tootGeneric(name, args)
+      }
+    })
   }
 
-  getEvent(name: string) {
-    return this.events[name]
+  proxy(): HooterProxy<E> {
+    return new HooterProxy<E>(this)
+  }
+
+  getEvent(name: string): RegisteredEvent | undefined {
+    return this.registeredEvents && this.registeredEvents[name]
   }
 
   handlers(needle: Handler | string) {
     return this.store.get(needle)
-  }
-
-  register(name: string, mode: ExecutionMode) {
-    if (typeof name !== 'string' || !name.length) {
-      throw new Error('An event name must be a non-empty string')
-    }
-
-    if (this.events[name]) {
-      throw new Error(`Event "${name}" is already registered`)
-    }
-
-    // if (!MODES.includes(mode)) {
-    //   throw new Error(
-    //     `An event mode must be one of the following: ${MODES_STRING}`
-    //   )
-    // }
-
-    this.events[name] = { mode }
   }
 
   _hookHandler(handler: Handler, priority: Priority) {
@@ -121,4 +114,4 @@ class Hooter extends HooterBase {
   }
 }
 
-export { Settings, Hooter as default }
+export { ExecutionMode, Events, RegisteredEvents, Settings, Hooter as default }

@@ -1,7 +1,7 @@
 import { ExecutionMode } from 'corrie'
 
 
-export interface Event {
+interface Event {
   name: string
   mode: ExecutionMode
   args: any[]
@@ -9,15 +9,28 @@ export interface Event {
   cb?: Function
 }
 
-export interface UserEvent {
+interface UserEvent {
   mode: void
   [key: string]: any
 }
 
-export interface RegisteredEvent {
+interface RegisteredEvent {
   mode: ExecutionMode
 }
 
-export function isUserEvent(obj: any): obj is UserEvent {
+interface Events {
+  [key: string]: Function
+}
+
+type RegisteredEvents<T extends Events> = {
+  [K in keyof T]: RegisteredEvent
+}
+
+function isUserEvent(obj: any): obj is UserEvent {
   return obj && typeof obj === 'object' && !obj.mode
+}
+
+
+export {
+  Event, UserEvent, RegisteredEvent, Events, RegisteredEvents, isUserEvent
 }

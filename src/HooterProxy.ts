@@ -1,18 +1,18 @@
 import { ExecutionMode } from 'corrie';
 import HooterBase, { Handler, Priority } from './HooterBase'
 import Hooter from './Hooter'
-import { Event, UserEvent, RegisteredEvent } from 'src/events';
+import { Event, UserEvent, RegisteredEvent, Events } from 'src/events';
 
 
-class HooterProxy extends HooterBase {
+class HooterProxy<E extends Events> extends HooterBase<E> {
   owner: any
 
-  constructor(public source: HooterBase) {
+  constructor(public source: HooterBase<E>) {
     super()
     this.corrie = this.source.corrie
   }
 
-  proxy(): HooterProxy {
+  proxy(): HooterProxy<E> {
     return new HooterProxy(this)
   }
 
@@ -29,16 +29,6 @@ class HooterProxy extends HooterBase {
   handlers(needle: Handler | string) {
     if (this.source) {
       return this.source.handlers(needle)
-    }
-
-    throw new Error(
-      'This hooter proxy doesn\'t have a source assigned, which is required'
-    )
-  }
-
-  register(name: string, mode: ExecutionMode) {
-    if (this.source) {
-      return this.source.register(name, mode)
     }
 
     throw new Error(

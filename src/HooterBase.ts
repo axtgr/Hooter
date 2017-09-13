@@ -2,7 +2,7 @@ import wildcardMatch = require('wildcard-match')
 import corrie = require('corrie')
 import { ExecutionMode } from 'corrie'
 import HooterProxy from './HooterProxy'
-import { Event, UserEvent, RegisteredEvent, isUserEvent } from './events'
+import { Event, UserEvent, RegisteredEvent, Events, isUserEvent } from './events'
 import { Routine, ResultRoutine, createRoutine, Mode as RoutineMode } from './routines'
 
 
@@ -24,7 +24,7 @@ function match(a: string, b: string) {
 const DEFAULT_EXECUTION_MODE = ExecutionMode.Auto
 
 
-abstract class HooterBase {
+abstract class HooterBase<E extends Events> {
   corrie: typeof corrie
 
   match(a: string, b: string) {
@@ -44,7 +44,7 @@ abstract class HooterBase {
     return this.corrie(routine)
   }
 
-  abstract proxy(): HooterProxy
+  abstract proxy(): HooterProxy<E>
 
   bind(owner: any) {
     let proxy = this.proxy()
@@ -52,71 +52,67 @@ abstract class HooterBase {
     return proxy
   }
 
-  abstract register(name: string, mode: ExecutionMode): void
-
   abstract handlers(needle: Handler | string): Handler[]
 
   abstract unhook(handler: Handler): void
 
   private _createHandler(routineMode: RoutineMode, event: string, fn?: Function): Handler & Routine {
     let handler = <Handler & Routine>createRoutine(this, routineMode, fn)
-
     handler.key = event
     handler.unhook = () => this.unhook(handler)
-
     return handler
   }
 
   abstract _hookHandler(handler: Handler, priority: Priority): void
 
-  hookGeneric(
+  hookGeneric<K extends keyof E>(
     routineMode: RoutineMode,
     priority: Priority,
-    event: string,
-    fn?: Function,
+    event: K,
+    fn?: E[K],
   ) {
     let handler = this._createHandler(routineMode, event, fn)
     this._hookHandler(handler, priority)
     return handler
   }
 
-  hook(event: string, fn: Function) {
+  hook<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Default, Priority.Normal, event, fn)
   }
 
-  hookStart(event: string, fn: Function) {
+  hookStart<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Default, Priority.Start, event, fn)
   }
 
-  hookEnd(event: string, fn: Function) {
+  hookEnd<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Default, Priority.End, event, fn)
   }
 
-  hookAfter(event: string, fn: Function) {
+  hookAfter<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.After, Priority.Normal, event, fn)
   }
 
-  hookStartAfter(event: string, fn: Function) {
+  hookStartAfter<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.After, Priority.Start, event, fn)
   }
 
-  hookEndAfter(event: string, fn: Function) {
+  hookEndAfter<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.After, Priority.End, event, fn)
   }
 
-  hookResult(event: string) {
+  hookResult<K extends keyof E>(event: K) {
     return <Handler & ResultRoutine>this.hookGeneric(RoutineMode.Result, Priority.Normal, event)
   }
 
-  hookStartResult(event: string) {
+  hookStartResult<K extends keyof E>(event: K) {
     return <Handler & ResultRoutine>this.hookGeneric(RoutineMode.Result, Priority.Start, event)
   }
 
-  hookEndResult(event: string) {
+  hookEndResult<K extends keyof E>(event: K) {
     return <Handler & ResultRoutine>this.hookGeneric(RoutineMode.Result, Priority.End, event)
   }
 
-  abstract getEvent(name: string): RegisteredEvent
+  abstract getEvent(name: string): RegisteredEvent | undefined
 
   protected _createEvent(name: string | UserEvent, args: any[], cb?: Function): Event {
     let userEvent: UserEvent | undefined
@@ -152,16 +148,16 @@ abstract class HooterBase {
 
   abstract _tootEvent(event: Event): any
 
-  tootGeneric(userEvent: string | UserEvent, args: any[], cb?: Function) {
+  tootGeneric<K extends keyof E>(userEvent: K | UserEvent, args: any[], cb?: Function): any {
     let event: Event = this._createEvent(userEvent, args, cb)
     return this._tootEvent(event)
   }
 
-  toot(event: string | UserEvent, ...args: any[]) {
+  toot<K extends keyof E>(event: K | UserEvent, ...args: any[]): any {
     return this.tootGeneric(event, args)
   }
 
-  tootWith(event: string | UserEvent, cb: Function, ...args: any[]) {
+  tootWith<K extends keyof E>(event: K | UserEvent, cb: Function, ...args: any[]): any {
     return this.tootGeneric(event, args, cb)
   }
 }
