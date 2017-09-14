@@ -1,8 +1,7 @@
-import { ExecutionMode } from 'corrie';
+import { ExecutionMode } from 'corrie'
 import HooterBase, { Handler, Priority } from './HooterBase'
 import Hooter from './Hooter'
-import { Event, UserEvent, RegisteredEvent, Events } from 'src/events';
-
+import { Event, UserEvent, RegisteredEvent, Events } from 'src/events'
 
 class HooterProxy<E extends Events> extends HooterBase<E> {
   owner: any
@@ -22,7 +21,7 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     }
 
     throw new Error(
-      'This hooter proxy doesn\'t have a source assigned, which is required'
+      "This hooter proxy doesn't have a source assigned, which is required"
     )
   }
 
@@ -32,7 +31,7 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     }
 
     throw new Error(
-      'This hooter proxy doesn\'t have a source assigned, which is required'
+      "This hooter proxy doesn't have a source assigned, which is required"
     )
   }
 
@@ -42,7 +41,7 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     }
 
     throw new Error(
-      'This hooter proxy doesn\'t have a source assigned, which is required'
+      "This hooter proxy doesn't have a source assigned, which is required"
     )
   }
 
@@ -52,11 +51,15 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     }
 
     throw new Error(
-      'This hooter proxy doesn\'t have a source assigned, which is required'
+      "This hooter proxy doesn't have a source assigned, which is required"
     )
   }
 
-  protected _createEvent(name: string | UserEvent, args: any[], cb?: Function): Event {
+  protected _createEvent(
+    name: string | UserEvent,
+    args: any[],
+    cb?: Function
+  ): Event {
     let event: Event = super._createEvent(name, args, cb)
     event.tooter = this.owner
     return event
@@ -68,7 +71,7 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     }
 
     throw new Error(
-      'This hooter proxy doesn\'t have a source assigned, which is required'
+      "This hooter proxy doesn't have a source assigned, which is required"
     )
   }
 }

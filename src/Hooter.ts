@@ -1,18 +1,15 @@
 import corrie = require('corrie')
 import {
-  ExecutionMode, EffectHandlers, DEFAULT_SETTINGS, Settings as CorrieSettings
+  ExecutionMode,
+  EffectHandlers,
+  DEFAULT_SETTINGS,
+  Settings as CorrieSettings,
 } from 'corrie'
 import HandlerStore from './Store'
 import HooterBase, { Priority, Handler } from './HooterBase'
 import HooterProxy from './HooterProxy'
 import { Event, Events, RegisteredEvent, RegisteredEvents } from './events'
-import {
-  throwHandler,
-  tootHandler,
-  hookHandler,
-  forkHandler,
-} from './effects'
-
+import { throwHandler, tootHandler, hookHandler, forkHandler } from './effects'
 
 interface Settings<T extends Events> extends CorrieSettings {
   events?: RegisteredEvents<T>
@@ -33,7 +30,7 @@ class Hooter<E extends Events> extends HooterBase<E> {
   private registeredEvents?: RegisteredEvents<E>
   private store: HandlerStore
 
-  events: E = <E>{}
+  events: E = {} as E
   settings: Settings<E>
 
   constructor(userSettings?: Settings<E>) {
@@ -48,10 +45,17 @@ class Hooter<E extends Events> extends HooterBase<E> {
     }
 
     if (userSettings && userSettings.effectHandlers) {
-      effectHandlers = Object.assign({}, effectHandlers, userSettings.effectHandlers)
+      effectHandlers = Object.assign(
+        {},
+        effectHandlers,
+        userSettings.effectHandlers
+      )
     }
 
-    settings = Object.assign({}, DEFAULT_SETTINGS, userSettings, { effectHandlers, state })
+    settings = Object.assign({}, DEFAULT_SETTINGS, userSettings, {
+      effectHandlers,
+      state,
+    })
 
     this.settings = settings
     this.corrie = corrie(settings)
@@ -109,7 +113,9 @@ class Hooter<E extends Events> extends HooterBase<E> {
     } else if (event.mode === ExecutionMode.Auto) {
       return this.corrie(...handlers).apply(event, event.args)
     } else {
-      return (<any>this.corrie)[event.mode](...handlers).apply(event, event.args)
+      return (this.corrie as any)
+        [event.mode](...handlers)
+        .apply(event, event.args)
     }
   }
 }

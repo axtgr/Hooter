@@ -10,7 +10,7 @@ declare module 'corrie' {
       Auto = 'auto',
       AsIs = 'asIs',
       Async = 'async',
-      Sync = 'sync'
+      Sync = 'sync',
     }
 
     interface Effect {

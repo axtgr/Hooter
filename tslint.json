@@ -1,0 +1,37 @@
+{
+  "extends": ["tslint:recommended", "tslint-config-prettier"],
+  "rulesDirectory": ["tslint-plugin-prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2016,
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "env": {
+    "es6": true,
+    "node": true,
+    "browser": true
+  },
+  "rules": {
+    "prettier": [true, {
+      "printWidth": 80,
+      "tabWidth": 2,
+      "semi": false,
+      "singleQuote": true,
+      "trailingComma": "es5"
+    }],
+    "ordered-imports": false,
+    "interface-name": false,
+    "prefer-const": false,
+    "object-literal-sort-keys": false,
+    "ban-types": [true, ["Object"]],
+    "member-access": false,
+    "member-ordering": [
+      true,
+      ["static-field", "static-method", "instance-field", "instance-method"]
+    ],
+    "no-empty": false,
+    "variable-name": [true, "check-format"]
+  }
+}

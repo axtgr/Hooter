@@ -3,8 +3,7 @@ class Store {
   private items: any[] = []
   private endItems: any[] = []
 
-  constructor(private match: (item: any, needle: any) => boolean) {
-  }
+  constructor(private match: (item: any, needle: any) => boolean) {}
 
   prepend(item: any): void {
     this.startItems.push(item)
@@ -23,7 +22,7 @@ class Store {
       return this.startItems.concat(this.items, this.endItems)
     }
 
-    return this.startItems.concat(this.items, this.endItems).filter((item) => {
+    return this.startItems.concat(this.items, this.endItems).filter(item => {
       return this.match(item, needle)
     })
   }
@@ -34,13 +33,13 @@ class Store {
       this.items = []
       this.endItems = []
     } else {
-      this.startItems = this.startItems.filter((item) => {
+      this.startItems = this.startItems.filter(item => {
         return !this.match(item, needle)
       })
-      this.items = this.items.filter((item) => {
+      this.items = this.items.filter(item => {
         return !this.match(item, needle)
       })
-      this.endItems = this.endItems.filter((item) => {
+      this.endItems = this.endItems.filter(item => {
         return !this.match(item, needle)
       })
     }

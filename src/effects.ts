@@ -4,7 +4,6 @@ import { createRoutine, Mode as RoutineMode, Routine } from './routines'
 import HooterBase, { Priority, Handler } from './HooterBase'
 import { Event, UserEvent } from './events'
 
-
 interface TootEffect extends Effect {
   effect: 'toot'
   event: UserEvent
@@ -31,8 +30,6 @@ interface HooterError extends Error {
   [key: string]: any
 }
 
-
-
 function throwHandler(effect: Effect, execution: any): never {
   let err: HooterError = effect.err
 
@@ -49,7 +46,7 @@ function throwHandler(effect: Effect, execution: any): never {
 
 function tootHandler(effect: TootEffect, execution: any): any {
   let { event, args, cb } = effect
-  let hooter = <HooterBase<any>>execution.routine.hooter
+  let hooter = execution.routine.hooter as HooterBase<any>
 
   if (!hooter) {
     throw new Error('Routine hooter is undefined')
@@ -66,9 +63,12 @@ function tootWith(event: UserEvent, cb: Function, ...args: any[]): TootEffect {
   return { effect: 'toot', event, args, cb }
 }
 
-function hookHandler(effect: HookEffect, execution: any): Handler & Routine<any> {
+function hookHandler(
+  effect: HookEffect,
+  execution: any
+): Handler & Routine<any> {
   let { event, fn, priority, routineMode } = effect
-  let hooter = <HooterBase<any>>execution.routine.hooter
+  let hooter = execution.routine.hooter as HooterBase<any>
 
   if (!hooter) {
     throw new Error('Routine hooter is undefined')
@@ -78,45 +78,100 @@ function hookHandler(effect: HookEffect, execution: any): Handler & Routine<any>
 }
 
 function hook(event: string, fn: Function): HookEffect {
-  return { effect: 'hook', event, priority: Priority.Normal, routineMode: RoutineMode.Default, fn }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Normal,
+    routineMode: RoutineMode.Default,
+    fn,
+  }
 }
 
 function hookStart(event: string, fn: Function): HookEffect {
-  return { effect: 'hook', event, priority: Priority.Start, routineMode: RoutineMode.Default, fn }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Start,
+    routineMode: RoutineMode.Default,
+    fn,
+  }
 }
 
 function hookEnd(event: string, fn: Function): HookEffect {
-  return { effect: 'hook', event, priority: Priority.End, routineMode: RoutineMode.Default, fn }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.End,
+    routineMode: RoutineMode.Default,
+    fn,
+  }
 }
 
 function hookAfter(event: string, fn: Function): HookEffect {
-  return { effect: 'hook', event, priority: Priority.Normal, routineMode: RoutineMode.After, fn }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Normal,
+    routineMode: RoutineMode.After,
+    fn,
+  }
 }
 
 function hookStartAfter(event: string, fn: Function): HookEffect {
-  return { effect: 'hook', event, priority: Priority.Start, routineMode: RoutineMode.After, fn }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Start,
+    routineMode: RoutineMode.After,
+    fn,
+  }
 }
 
 function hookEndAfter(event: string, fn: Function): HookEffect {
-  return { effect: 'hook', event, priority: Priority.End, routineMode: RoutineMode.After, fn }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.End,
+    routineMode: RoutineMode.After,
+    fn,
+  }
 }
 
 function hookResult(event: string): HookEffect {
-  return { effect: 'hook', event, priority: Priority.Normal, routineMode: RoutineMode.Result }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Normal,
+    routineMode: RoutineMode.Result,
+  }
 }
 
 function hookStartResult(event: string): HookEffect {
-  return { effect: 'hook', event, priority: Priority.Start, routineMode: RoutineMode.Result }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Start,
+    routineMode: RoutineMode.Result,
+  }
 }
 
 function hookEndResult(event: string): HookEffect {
-  return { effect: 'hook', event, priority: Priority.End, routineMode: RoutineMode.Result }
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.End,
+    routineMode: RoutineMode.Result,
+  }
 }
 
 function forkHandler(effect: ForkEffect, execution: any) {
   let { routine, args, mode } = effect
 
-  routine = createRoutine(execution.routine.hooter, RoutineMode.Default, routine)
+  routine = createRoutine(
+    execution.routine.hooter,
+    RoutineMode.Default,
+    routine
+  )
   effect = { effect: 'fork', routine, args, mode }
 
   return corrieForkHandler(effect, execution)

@@ -2,14 +2,24 @@ import wildcardMatch = require('wildcard-match')
 import corrie = require('corrie')
 import { ExecutionMode } from 'corrie'
 import HooterProxy from './HooterProxy'
-import { Event, UserEvent, RegisteredEvent, Events, isUserEvent } from './events'
-import { Routine, ResultRoutine, createRoutine, Mode as RoutineMode } from './routines'
-
+import {
+  Event,
+  UserEvent,
+  RegisteredEvent,
+  Events,
+  isUserEvent,
+} from './events'
+import {
+  Routine,
+  ResultRoutine,
+  createRoutine,
+  Mode as RoutineMode,
+} from './routines'
 
 const enum Priority {
   Start = 'start',
   Normal = 'normal',
-  End = 'end'
+  End = 'end',
 }
 
 interface Handler extends Function {
@@ -22,7 +32,6 @@ function match(a: string, b: string) {
 }
 
 const DEFAULT_EXECUTION_MODE = ExecutionMode.Auto
-
 
 abstract class HooterBase<E extends Events> {
   corrie: typeof corrie
@@ -56,8 +65,12 @@ abstract class HooterBase<E extends Events> {
 
   abstract unhook(handler: Handler): void
 
-  private _createHandler(routineMode: RoutineMode, event: string, fn?: Function): Handler & Routine<E> {
-    let handler = <Handler & Routine<E>>createRoutine(this, routineMode, fn)
+  private _createHandler(
+    routineMode: RoutineMode,
+    event: string,
+    fn?: Function
+  ): Handler & Routine<E> {
+    let handler = createRoutine(this, routineMode, fn) as Handler & Routine<E>
     handler.key = event
     handler.unhook = () => this.unhook(handler)
     return handler
@@ -69,7 +82,7 @@ abstract class HooterBase<E extends Events> {
     routineMode: RoutineMode,
     priority: Priority,
     event: K,
-    fn?: E[K],
+    fn?: E[K]
   ) {
     let handler = this._createHandler(routineMode, event, fn)
     this._hookHandler(handler, priority)
@@ -101,20 +114,36 @@ abstract class HooterBase<E extends Events> {
   }
 
   hookResult<K extends keyof E>(event: K) {
-    return <Handler & ResultRoutine<E>>this.hookGeneric(RoutineMode.Result, Priority.Normal, event)
+    return this.hookGeneric(
+      RoutineMode.Result,
+      Priority.Normal,
+      event
+    ) as Handler & ResultRoutine<E>
   }
 
   hookStartResult<K extends keyof E>(event: K) {
-    return <Handler & ResultRoutine<E>>this.hookGeneric(RoutineMode.Result, Priority.Start, event)
+    return this.hookGeneric(
+      RoutineMode.Result,
+      Priority.Start,
+      event
+    ) as Handler & ResultRoutine<E>
   }
 
   hookEndResult<K extends keyof E>(event: K) {
-    return <Handler & ResultRoutine<E>>this.hookGeneric(RoutineMode.Result, Priority.End, event)
+    return this.hookGeneric(
+      RoutineMode.Result,
+      Priority.End,
+      event
+    ) as Handler & ResultRoutine<E>
   }
 
   abstract getEvent(name: string): RegisteredEvent | undefined
 
-  protected _createEvent(name: string | UserEvent, args: any[], cb?: Function): Event {
+  protected _createEvent(
+    name: string | UserEvent,
+    args: any[],
+    cb?: Function
+  ): Event {
     let userEvent: UserEvent | undefined
 
     if (isUserEvent(name)) {
@@ -127,7 +156,9 @@ abstract class HooterBase<E extends Events> {
     }
 
     let registeredEvent: RegisteredEvent | undefined = this.getEvent(name)
-    let mode: ExecutionMode = registeredEvent ? registeredEvent.mode : DEFAULT_EXECUTION_MODE
+    let mode: ExecutionMode = registeredEvent
+      ? registeredEvent.mode
+      : DEFAULT_EXECUTION_MODE
 
     let event: Event = {
       name,
@@ -148,7 +179,11 @@ abstract class HooterBase<E extends Events> {
 
   abstract _tootEvent(event: Event): any
 
-  tootGeneric<K extends keyof E>(userEvent: K | UserEvent, args: any[], cb?: Function): any {
+  tootGeneric<K extends keyof E>(
+    userEvent: K | UserEvent,
+    args: any[],
+    cb?: Function
+  ): any {
     let event: Event = this._createEvent(userEvent, args, cb)
     return this._tootEvent(event)
   }
@@ -157,7 +192,11 @@ abstract class HooterBase<E extends Events> {
     return this.tootGeneric(event, args)
   }
 
-  tootWith<K extends keyof E>(event: K | UserEvent, cb: Function, ...args: any[]): any {
+  tootWith<K extends keyof E>(
+    event: K | UserEvent,
+    cb: Function,
+    ...args: any[]
+  ): any {
     return this.tootGeneric(event, args, cb)
   }
 }
