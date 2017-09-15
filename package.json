@@ -44,6 +44,6 @@
   },
   "dependencies": {
     "corrie": "^0.6.0",
-    "wildcard-match": "^1.0.0"
+    "wildcard-match": "^1.1.0"
   }
 }
