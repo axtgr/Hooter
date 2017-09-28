@@ -55,12 +55,14 @@ function createRoutine<T extends Events>(
   if (mode === Mode.Pre) {
     if (isGenerator) {
       routine = function*(...args: any[]): any {
-        args = yield* fn.apply(this, args)
+        let newArgs = yield* fn.apply(this, args)
+        args = typeof newArgs === 'undefined' ? args : newArgs
         return yield { effect: 'next', args }
       } as Routine<T>
     } else {
       routine = function*(...args: any[]): any {
-        args = yield fn.apply(this, args)
+        let newArgs = yield fn.apply(this, args)
+        args = typeof newArgs === 'undefined' ? args : newArgs
         return yield { effect: 'next', args }
       } as Routine<T>
     }
