@@ -18,8 +18,9 @@
     "generators"
   ],
   "scripts": {
-    "start": "del-cli dist/** && tsc -w",
+    "start": "npm run watch",
     "build": "del-cli dist/** && tsc",
+    "watch": "del-cli dist/** && tsc -w",
     "test": "mocha tests",
     "precommit": "lint-staged"
   },
