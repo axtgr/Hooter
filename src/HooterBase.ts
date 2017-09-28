@@ -121,22 +121,6 @@ abstract class HooterBase<E extends Events> {
     ) as Handler & ResultRoutine<E>
   }
 
-  hookStartResult<K extends keyof E>(event: K) {
-    return this.hookGeneric(
-      RoutineMode.Result,
-      Priority.Start,
-      event
-    ) as Handler & ResultRoutine<E>
-  }
-
-  hookEndResult<K extends keyof E>(event: K) {
-    return this.hookGeneric(
-      RoutineMode.Result,
-      Priority.End,
-      event
-    ) as Handler & ResultRoutine<E>
-  }
-
   abstract getEvent(name: string): RegisteredEvent | undefined
 
   protected _createEvent(

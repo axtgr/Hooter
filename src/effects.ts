@@ -150,24 +150,6 @@ function hookResult(event: string): HookEffect {
   }
 }
 
-function hookStartResult(event: string): HookEffect {
-  return {
-    effect: 'hook',
-    event,
-    priority: Priority.Start,
-    routineMode: RoutineMode.Result,
-  }
-}
-
-function hookEndResult(event: string): HookEffect {
-  return {
-    effect: 'hook',
-    event,
-    priority: Priority.End,
-    routineMode: RoutineMode.Result,
-  }
-}
-
 function forkHandler(effect: ForkEffect, execution: any) {
   let { routine, args, mode } = effect
 
@@ -197,7 +179,5 @@ export {
   hookStartAfter,
   hookEndAfter,
   hookResult,
-  hookStartResult,
-  hookEndResult,
   forkHandler,
 }
