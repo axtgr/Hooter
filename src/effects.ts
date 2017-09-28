@@ -6,7 +6,7 @@ import { Event, UserEvent } from './events'
 
 interface TootEffect extends Effect {
   effect: 'toot'
-  event: UserEvent
+  event: UserEvent | string
   args: any[]
 }
 
@@ -55,11 +55,15 @@ function tootHandler(effect: TootEffect, execution: any): any {
   return hooter.tootGeneric(event, args, cb)
 }
 
-function toot(event: UserEvent, ...args: any[]): TootEffect {
+function toot(event: UserEvent | string, ...args: any[]): TootEffect {
   return { effect: 'toot', event, args }
 }
 
-function tootWith(event: UserEvent, cb: Function, ...args: any[]): TootEffect {
+function tootWith(
+  event: UserEvent | string,
+  cb: Function,
+  ...args: any[]
+): TootEffect {
   return { effect: 'toot', event, args, cb }
 }
 
