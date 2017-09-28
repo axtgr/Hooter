@@ -101,16 +101,28 @@ abstract class HooterBase<E extends Events> {
     return this.hookGeneric(RoutineMode.Default, Priority.End, event, fn)
   }
 
-  hookAfter<K extends keyof E>(event: K, fn: E[K]) {
-    return this.hookGeneric(RoutineMode.After, Priority.Normal, event, fn)
+  preHook<K extends keyof E>(event: K, fn: E[K]) {
+    return this.hookGeneric(RoutineMode.Pre, Priority.Normal, event, fn)
   }
 
-  hookStartAfter<K extends keyof E>(event: K, fn: E[K]) {
-    return this.hookGeneric(RoutineMode.After, Priority.Start, event, fn)
+  preHookStart<K extends keyof E>(event: K, fn: E[K]) {
+    return this.hookGeneric(RoutineMode.Pre, Priority.Start, event, fn)
   }
 
-  hookEndAfter<K extends keyof E>(event: K, fn: E[K]) {
-    return this.hookGeneric(RoutineMode.After, Priority.End, event, fn)
+  preHookEnd<K extends keyof E>(event: K, fn: E[K]) {
+    return this.hookGeneric(RoutineMode.Pre, Priority.End, event, fn)
+  }
+
+  postHook<K extends keyof E>(event: K, fn: E[K]) {
+    return this.hookGeneric(RoutineMode.Post, Priority.Normal, event, fn)
+  }
+
+  postHookStart<K extends keyof E>(event: K, fn: E[K]) {
+    return this.hookGeneric(RoutineMode.Post, Priority.Start, event, fn)
+  }
+
+  postHookEnd<K extends keyof E>(event: K, fn: E[K]) {
+    return this.hookGeneric(RoutineMode.Post, Priority.End, event, fn)
   }
 
   hookResult<K extends keyof E>(event: K) {

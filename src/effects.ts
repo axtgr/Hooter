@@ -111,32 +111,62 @@ function hookEnd(event: string, fn: Function): HookEffect {
   }
 }
 
-function hookAfter(event: string, fn: Function): HookEffect {
+function preHook(event: string, fn: Function): HookEffect {
   return {
     effect: 'hook',
     event,
     priority: Priority.Normal,
-    routineMode: RoutineMode.After,
+    routineMode: RoutineMode.Pre,
     fn,
   }
 }
 
-function hookStartAfter(event: string, fn: Function): HookEffect {
+function preHookStart(event: string, fn: Function): HookEffect {
   return {
     effect: 'hook',
     event,
     priority: Priority.Start,
-    routineMode: RoutineMode.After,
+    routineMode: RoutineMode.Pre,
     fn,
   }
 }
 
-function hookEndAfter(event: string, fn: Function): HookEffect {
+function preHookEnd(event: string, fn: Function): HookEffect {
   return {
     effect: 'hook',
     event,
     priority: Priority.End,
-    routineMode: RoutineMode.After,
+    routineMode: RoutineMode.Pre,
+    fn,
+  }
+}
+
+function postHook(event: string, fn: Function): HookEffect {
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Normal,
+    routineMode: RoutineMode.Post,
+    fn,
+  }
+}
+
+function postHookStart(event: string, fn: Function): HookEffect {
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.Start,
+    routineMode: RoutineMode.Post,
+    fn,
+  }
+}
+
+function postHookEnd(event: string, fn: Function): HookEffect {
+  return {
+    effect: 'hook',
+    event,
+    priority: Priority.End,
+    routineMode: RoutineMode.Post,
     fn,
   }
 }
@@ -175,9 +205,12 @@ export {
   hook,
   hookStart,
   hookEnd,
-  hookAfter,
-  hookStartAfter,
-  hookEndAfter,
+  preHook,
+  preHookStart,
+  preHookEnd,
+  postHook,
+  postHookStart,
+  postHookEnd,
   hookResult,
   forkHandler,
 }
