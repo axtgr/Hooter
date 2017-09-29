@@ -33,5 +33,22 @@
     ],
     "no-empty": false,
     "variable-name": [true, "check-format"]
+  },
+  "jsRules": {
+    "prettier": [true, {
+      "printWidth": 80,
+      "tabWidth": 2,
+      "semi": false,
+      "singleQuote": true,
+      "trailingComma": "es5"
+    }],
+    "ordered-imports": false,
+    "interface-name": false,
+    "prefer-const": false,
+    "object-literal-sort-keys": false,
+    "member-access": false,
+    "member-ordering": false,
+    "no-empty": false,
+    "variable-name": [true, "check-format"]
   }
 }
