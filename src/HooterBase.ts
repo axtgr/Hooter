@@ -61,6 +61,18 @@ abstract class HooterBase<E extends Events> {
     return proxy
   }
 
+  plug(plugin: Function): Function
+  plug(plugin: Function[]): Function[]
+  plug(plugin: Function[] | Function) {
+    if (Array.isArray(plugin)) {
+      return plugin.map(p => this.plug(p))
+    }
+
+    let proxy = this.bind(plugin)
+    let wrappedPlugin = proxy.wrap(plugin)
+    return wrappedPlugin.bind(proxy)
+  }
+
   abstract handlers(needle: Handler | string): Handler[]
 
   abstract unhook(handler: Handler): void
