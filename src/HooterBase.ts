@@ -48,17 +48,17 @@ abstract class HooterBase<E extends Events> {
     return handler === needle
   }
 
-  wrap(fn: Function) {
-    let routine = createRoutine<E>(this, RoutineMode.Default, fn)
-    return this.corrie(routine)
-  }
-
   abstract proxy(): HooterProxy<E>
 
   bind(owner: any) {
     let proxy = this.proxy()
     proxy.owner = owner
     return proxy
+  }
+
+  wrap(fn: Function) {
+    let routine = createRoutine<E>(this, RoutineMode.Default, fn)
+    return this.corrie(routine)
   }
 
   plug(plugin: Function): Function
