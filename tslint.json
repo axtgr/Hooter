@@ -32,7 +32,9 @@
       ["static-field", "static-method", "instance-field", "instance-method"]
     ],
     "no-empty": false,
-    "variable-name": [true, "check-format"]
+    "variable-name": [true, "check-format"],
+    "array-type": [true, "array"],
+    "no-shadowed-variable": false
   },
   "jsRules": {
     "prettier": [true, {
@@ -49,6 +51,7 @@
     "member-access": false,
     "member-ordering": false,
     "no-empty": false,
-    "variable-name": [true, "check-format"]
+    "variable-name": [true, "check-format"],
+    "no-shadowed-variable": false
   }
 }
