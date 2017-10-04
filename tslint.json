@@ -34,7 +34,8 @@
     "no-empty": false,
     "variable-name": [true, "check-format"],
     "array-type": [true, "array"],
-    "no-shadowed-variable": false
+    "no-shadowed-variable": false,
+    "no-unused-expression": [true, "allow-fast-null-checks"]
   },
   "jsRules": {
     "prettier": [true, {
@@ -52,6 +53,7 @@
     "member-ordering": false,
     "no-empty": false,
     "variable-name": [true, "check-format"],
-    "no-shadowed-variable": false
+    "no-shadowed-variable": false,
+    "no-unused-expression": [true, "allow-fast-null-checks"]
   }
 }
