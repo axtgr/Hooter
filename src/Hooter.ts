@@ -7,16 +7,34 @@ import {
 } from 'corrie'
 import HandlerStore from './Store'
 import HooterBase, { Priority, Handler } from './HooterBase'
-import HooterProxy from './HooterProxy'
+import HooterProxy, { Settings as HooterProxySettings } from './HooterProxy'
 import { Event, Events, RegisteredEvent, RegisteredEvents } from './events'
 import { throwHandler, tootHandler, hookHandler, forkHandler } from './effects'
+import sortPlugins from './sortPlugins'
 
 interface Settings<T extends Events> extends CorrieSettings {
   events?: RegisteredEvents<T>
+  registeredEventsOnly?: boolean
 }
 
 interface State<T extends Events> {
   hooter: Hooter<T>
+}
+
+interface Plugin {
+  (): void
+  tags?: string[]
+  before?: string[]
+  after?: string[]
+}
+
+interface WrappedPlugin {
+  (): void
+  raw: Plugin
+}
+
+interface PluginSettings extends HooterProxySettings {
+  required: boolean
 }
 
 const EFFECTS: EffectHandlers = Object.assign(DEFAULT_SETTINGS.effectHandlers, {
@@ -27,9 +45,13 @@ const EFFECTS: EffectHandlers = Object.assign(DEFAULT_SETTINGS.effectHandlers, {
 })
 
 class Hooter<E extends Events> extends HooterBase<E> {
-  private registeredEvents?: RegisteredEvents<E>
   private store: HandlerStore
+  private plugins: WrappedPlugin[] = []
+  private requiredPlugins: string[] = []
+  private disabledPlugins: string[] = []
+  private registeredEvents?: RegisteredEvents<E>
 
+  started = false
   events: E = {} as E
   settings: Settings<E>
 
@@ -60,6 +82,7 @@ class Hooter<E extends Events> extends HooterBase<E> {
     this.settings = settings
     this.corrie = corrie(settings)
     this.store = new HandlerStore(this.matchHandler)
+    this.registeredEventsOnly = !!settings.registeredEventsOnly
 
     if (settings.events) {
       this.registeredEvents = settings.events
@@ -75,8 +98,83 @@ class Hooter<E extends Events> extends HooterBase<E> {
     })
   }
 
-  proxy(): HooterProxy<E> {
-    return new HooterProxy<E>(this)
+  proxy(settings?: HooterProxySettings): HooterProxy<E> {
+    return new HooterProxy<E>(this, settings)
+  }
+
+  bind(owner: any, settings?: HooterProxySettings) {
+    let proxy = this.proxy(settings)
+    proxy.owner = owner
+    return proxy
+  }
+
+  plug(
+    plugin: Plugin | string | (Plugin | string)[],
+    settings?: PluginSettings
+  ): void {
+    if (this.started) {
+      throw new Error('Cannot add a plugin to an already started Hooter')
+    }
+
+    if (Array.isArray(plugin)) {
+      return plugin.forEach(p => this.plug(p, settings))
+    }
+
+    if (typeof plugin === 'string') {
+      if (plugin[0] !== '-') {
+        throw new Error(
+          'When a string is provided as a plugin, it must start with a hyphen'
+        )
+      }
+      this.disabledPlugins.push(plugin.slice(1))
+      return
+    }
+
+    if (typeof plugin !== 'function') {
+      throw new Error('A plugin must be a function')
+    }
+
+    if (typeof plugin.tags !== 'undefined' && !Array.isArray(plugin.tags)) {
+      throw new Error("A plugin's tags must be an array of strings")
+    }
+
+    if (typeof plugin.before !== 'undefined' && !Array.isArray(plugin.before)) {
+      throw new Error("A plugin's before property must be an array of strings")
+    }
+
+    if (typeof plugin.after !== 'undefined' && !Array.isArray(plugin.after)) {
+      throw new Error("A plugin's after property must be an array of strings")
+    }
+
+    let proxy = this.bind(plugin, settings)
+    let wrappedPlugin: WrappedPlugin = proxy.wrap(plugin).bind(proxy)
+    wrappedPlugin.raw = plugin
+    this.plugins.push(wrappedPlugin)
+
+    if (settings && settings.required) {
+      this.requiredPlugins.push(plugin.name)
+    }
+  }
+
+  start(...args: any[]) {
+    if (this.started) {
+      throw new Error('Cannot start an already started Hooter')
+    }
+
+    this.started = true
+
+    let plugins = this.plugins.filter(plugin => {
+      let { name } = plugin.raw
+      let isDisabled = this.disabledPlugins.includes(name)
+      let isRequired = this.requiredPlugins.includes(name)
+
+      if (isDisabled && isRequired) {
+        throw new Error(`Plugin "${name}" is required and cannot be disabled`)
+      }
+
+      return !isDisabled
+    })
+    sortPlugins(plugins).forEach(plugin => plugin(...args))
   }
 
   getEvent(name: string): RegisteredEvent | undefined {
@@ -120,4 +218,13 @@ class Hooter<E extends Events> extends HooterBase<E> {
   }
 }
 
-export { ExecutionMode, Events, RegisteredEvents, Settings, Hooter as default }
+export {
+  ExecutionMode,
+  Events,
+  RegisteredEvents,
+  Settings,
+  PluginSettings,
+  Plugin,
+  WrappedPlugin,
+  Hooter as default,
+}

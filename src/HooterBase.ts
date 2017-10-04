@@ -34,6 +34,7 @@ function match(a: string, b: string) {
 const DEFAULT_EXECUTION_MODE = ExecutionMode.Auto
 
 abstract class HooterBase<E extends Events> {
+  registeredEventsOnly = false
   corrie: typeof corrie
 
   match(a: string, b: string) {
@@ -48,29 +49,9 @@ abstract class HooterBase<E extends Events> {
     return handler === needle
   }
 
-  abstract proxy(): HooterProxy<E>
-
-  bind(owner: any) {
-    let proxy = this.proxy()
-    proxy.owner = owner
-    return proxy
-  }
-
   wrap(fn: Function) {
     let routine = createRoutine<E>(this, RoutineMode.Default, fn)
     return this.corrie(routine)
-  }
-
-  plug(plugin: Function): Function
-  plug(plugin: Function[]): Function[]
-  plug(plugin: Function[] | Function) {
-    if (Array.isArray(plugin)) {
-      return plugin.map(p => this.plug(p))
-    }
-
-    let proxy = this.bind(plugin)
-    let wrappedPlugin = proxy.wrap(plugin)
-    return wrappedPlugin.bind(proxy)
   }
 
   abstract handlers(needle: Handler | string): Handler[]
@@ -164,6 +145,13 @@ abstract class HooterBase<E extends Events> {
     }
 
     let registeredEvent: RegisteredEvent | undefined = this.getEvent(name)
+
+    if (!registeredEvent && this.registeredEventsOnly) {
+      throw new Error(
+        `Cannot toot "${name}": only registered events are allowed`
+      )
+    }
+
     let mode: ExecutionMode = registeredEvent
       ? registeredEvent.mode
       : DEFAULT_EXECUTION_MODE
