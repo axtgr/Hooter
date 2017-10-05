@@ -82,8 +82,9 @@ abstract class HooterBase<E extends Events> {
     return handler
   }
 
-  hook<K extends keyof E>(event: K, fn: E[K]) {
-    return this.hookGeneric(RoutineMode.Default, Priority.Normal, event, fn)
+  hook<K extends keyof E>(event: K, fn?: E[K]) {
+    let mode = fn ? RoutineMode.Default : RoutineMode.Result
+    return this.hookGeneric(mode, Priority.Normal, event, fn)
   }
 
   hookStart<K extends keyof E>(event: K, fn: E[K]) {
@@ -116,14 +117,6 @@ abstract class HooterBase<E extends Events> {
 
   postHookEnd<K extends keyof E>(event: K, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Post, Priority.End, event, fn)
-  }
-
-  hookResult<K extends keyof E>(event: K) {
-    return this.hookGeneric(
-      RoutineMode.Result,
-      Priority.Normal,
-      event
-    ) as Handler & ResultRoutine<E>
   }
 
   abstract getEvent(name: string): RegisteredEvent | undefined

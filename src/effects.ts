@@ -82,11 +82,12 @@ function hookHandler(
 }
 
 function hook(event: string, fn: Function): HookEffect {
+  let routineMode = fn ? RoutineMode.Default : RoutineMode.Result
   return {
     effect: 'hook',
     event,
     priority: Priority.Normal,
-    routineMode: RoutineMode.Default,
+    routineMode,
     fn,
   }
 }
@@ -171,15 +172,6 @@ function postHookEnd(event: string, fn: Function): HookEffect {
   }
 }
 
-function hookResult(event: string): HookEffect {
-  return {
-    effect: 'hook',
-    event,
-    priority: Priority.Normal,
-    routineMode: RoutineMode.Result,
-  }
-}
-
 function forkHandler(effect: ForkEffect, execution: any) {
   let { routine, args, mode } = effect
 
@@ -211,6 +203,5 @@ export {
   postHook,
   postHookStart,
   postHookEnd,
-  hookResult,
   forkHandler,
 }
