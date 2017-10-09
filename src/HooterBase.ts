@@ -79,20 +79,26 @@ abstract class HooterBase<E extends Events> {
   ): Handler<E, K> & Routine<E> {
     let handler = createRoutine(this, routineMode, fn) as Handler<E, K> &
       Routine<E>
+    let tags = []
+
+    if (handler.owner && handler.owner.name) {
+      tags.push('owner:' + handler.owner.name)
+    }
 
     if (typeof event === 'string') {
       handler.event = event
     } else if (typeof event === 'object' && typeof event.event === 'string') {
       handler.event = event.event
-      handler.tags = event.tags
       handler.goesBefore = event.goesBefore
       handler.goesAfter = event.goesAfter
+      event.tags && tags.push(...event.tags)
     } else {
       throw new Error(
         'An event must be a string or an object with an event property'
       )
     }
 
+    handler.tags = tags
     handler.unhook = () => this.unhook(handler)
     return handler
   }
