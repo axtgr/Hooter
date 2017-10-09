@@ -41,7 +41,7 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     throw new Error()
   }
 
-  handlers(needle: Handler | string) {
+  handlers(needle: Handler<E, keyof E> | string) {
     if (this.source) {
       return this.source.handlers(needle)
     }
@@ -49,7 +49,7 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     throw new Error(NO_SOURCE_ERROR)
   }
 
-  unhook(handler: Handler) {
+  unhook(handler: Handler<E, keyof E> | string) {
     if (this.source) {
       return this.source.unhook(handler)
     }
@@ -57,9 +57,9 @@ class HooterProxy<E extends Events> extends HooterBase<E> {
     throw new Error(NO_SOURCE_ERROR)
   }
 
-  _hookHandler(handler: Handler, priority: Priority) {
+  _hookHandler(handler: Handler<E, keyof E>) {
     if (this.source) {
-      return this.source._hookHandler(handler, priority)
+      return this.source._hookHandler(handler)
     }
 
     throw new Error(NO_SOURCE_ERROR)

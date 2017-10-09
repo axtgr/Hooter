@@ -1,8 +1,8 @@
 import { Effect, ExecutionMode } from 'corrie'
 import { handler as corrieForkHandler } from 'corrie/src/effects/fork'
 import { createRoutine, Mode as RoutineMode, Routine } from './routines'
-import HooterBase, { Priority, Handler } from './HooterBase'
-import { Event, UserEvent } from './events'
+import HooterBase, { Priority, HandlerProperties, Handler } from './HooterBase'
+import { Event, Events, UserEvent } from './events'
 
 interface TootEffect extends Effect {
   effect: 'toot'
@@ -12,8 +12,8 @@ interface TootEffect extends Effect {
 
 interface HookEffect extends Effect {
   effect: 'hook'
-  event: string
-  priority: Priority
+  event: string | HandlerProperties<Events, string>
+  priority?: Priority
   routineMode: RoutineMode
   fn?: Function
 }
@@ -70,8 +70,8 @@ function tootWith(
 function hookHandler(
   effect: HookEffect,
   execution: any
-): Handler & Routine<any> {
-  let { event, fn, priority, routineMode } = effect
+): Handler<any, string> & Routine<any> {
+  let { event, fn, routineMode, priority } = effect
   let hooter = execution.routine.hooter as HooterBase<any>
 
   if (!hooter) {
@@ -81,18 +81,23 @@ function hookHandler(
   return hooter.hookGeneric(routineMode, priority, event, fn)
 }
 
-function hook(event: string, fn: Function): HookEffect {
+function hook(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   let routineMode = fn ? RoutineMode.Default : RoutineMode.Result
   return {
     effect: 'hook',
     event,
-    priority: Priority.Normal,
     routineMode,
     fn,
   }
 }
 
-function hookStart(event: string, fn: Function): HookEffect {
+function hookStart(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   return {
     effect: 'hook',
     event,
@@ -102,7 +107,15 @@ function hookStart(event: string, fn: Function): HookEffect {
   }
 }
 
-function hookEnd(event: string, fn: Function): HookEffect {
+function hookEnd(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
+  if (typeof event === 'string') {
+    event = { event, goesAfter: '**' }
+  } else {
+    event = Object.assign({}, event, { goesAfter: '**' })
+  }
   return {
     effect: 'hook',
     event,
@@ -116,13 +129,15 @@ function preHook(event: string, fn: Function): HookEffect {
   return {
     effect: 'hook',
     event,
-    priority: Priority.Normal,
     routineMode: RoutineMode.Pre,
     fn,
   }
 }
 
-function preHookStart(event: string, fn: Function): HookEffect {
+function preHookStart(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   return {
     effect: 'hook',
     event,
@@ -132,7 +147,10 @@ function preHookStart(event: string, fn: Function): HookEffect {
   }
 }
 
-function preHookEnd(event: string, fn: Function): HookEffect {
+function preHookEnd(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   return {
     effect: 'hook',
     event,
@@ -142,17 +160,22 @@ function preHookEnd(event: string, fn: Function): HookEffect {
   }
 }
 
-function postHook(event: string, fn: Function): HookEffect {
+function postHook(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   return {
     effect: 'hook',
     event,
-    priority: Priority.Normal,
     routineMode: RoutineMode.Post,
     fn,
   }
 }
 
-function postHookStart(event: string, fn: Function): HookEffect {
+function postHookStart(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   return {
     effect: 'hook',
     event,
@@ -162,7 +185,10 @@ function postHookStart(event: string, fn: Function): HookEffect {
   }
 }
 
-function postHookEnd(event: string, fn: Function): HookEffect {
+function postHookEnd(
+  event: string | HandlerProperties<Events, string>,
+  fn: Function
+): HookEffect {
   return {
     effect: 'hook',
     event,

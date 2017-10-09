@@ -15,6 +15,7 @@ import {
   createRoutine,
   Mode as RoutineMode,
 } from './routines'
+import { Item as StoreItem } from './Store'
 
 const enum Priority {
   Start = 'start',
@@ -22,8 +23,14 @@ const enum Priority {
   End = 'end',
 }
 
-interface Handler extends Function {
-  key: string
+interface HandlerProperties<E extends Events, K extends keyof E>
+  extends StoreItem {
+  event: K
+}
+
+interface Handler<E extends Events, K extends keyof E>
+  extends HandlerProperties<E, K> {
+  (...args: any[]): any
   unhook: () => void
 }
 
@@ -41,9 +48,16 @@ abstract class HooterBase<E extends Events> {
     return match(a, b)
   }
 
-  matchHandler(handler: Handler, needle: Handler | string) {
+  matchHandler(
+    handler: Handler<E, keyof E>,
+    needle?: Handler<E, keyof E> | string
+  ) {
+    if (typeof needle === 'undefined') {
+      return true
+    }
+
     if (typeof needle === 'string') {
-      return match(handler.key, needle)
+      return match(handler.event, needle)
     }
 
     return handler === needle
@@ -54,68 +68,95 @@ abstract class HooterBase<E extends Events> {
     return this.corrie(routine)
   }
 
-  abstract handlers(needle: Handler | string): Handler[]
+  abstract handlers(needle: Handler<E, keyof E> | string): Handler<E, keyof E>[]
 
-  abstract unhook(handler: Handler): void
+  abstract unhook(handler: Handler<E, keyof E> | string): void
 
-  private _createHandler(
+  private _createHandler<K extends keyof E>(
     routineMode: RoutineMode,
-    event: string,
-    fn?: Function
-  ): Handler & Routine<E> {
-    let handler = createRoutine(this, routineMode, fn) as Handler & Routine<E>
-    handler.key = event
+    event: K | HandlerProperties<E, K>,
+    fn?: E[K]
+  ): Handler<E, K> & Routine<E> {
+    let handler = createRoutine(this, routineMode, fn) as Handler<E, K> &
+      Routine<E>
+
+    if (typeof event === 'string') {
+      handler.event = event
+    } else if (typeof event === 'object' && typeof event.event === 'string') {
+      handler.event = event.event
+      handler.tags = event.tags
+      handler.goesBefore = event.goesBefore
+      handler.goesAfter = event.goesAfter
+    } else {
+      throw new Error(
+        'An event must be a string or an object with an event property'
+      )
+    }
+
     handler.unhook = () => this.unhook(handler)
     return handler
   }
 
-  abstract _hookHandler(handler: Handler, priority: Priority): void
+  abstract _hookHandler(handler: Handler<E, keyof E>): void
 
   hookGeneric<K extends keyof E>(
     routineMode: RoutineMode,
-    priority: Priority,
-    event: K,
+    priority: Priority | undefined,
+    event: K | HandlerProperties<E, K>,
     fn?: E[K]
   ) {
     let handler = this._createHandler(routineMode, event, fn)
-    this._hookHandler(handler, priority)
+
+    if (priority === Priority.Start) {
+      handler.goesBefore = '**'
+    } else if (priority === Priority.End) {
+      handler.goesAfter = '**'
+    }
+
+    this._hookHandler(handler)
     return handler
   }
 
-  hook<K extends keyof E>(event: K, fn?: E[K]) {
+  hook<K extends keyof E>(event: K | HandlerProperties<E, K>, fn?: E[K]) {
     let mode = fn ? RoutineMode.Default : RoutineMode.Result
     return this.hookGeneric(mode, Priority.Normal, event, fn)
   }
 
-  hookStart<K extends keyof E>(event: K, fn: E[K]) {
+  hookStart<K extends keyof E>(event: K | HandlerProperties<E, K>, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Default, Priority.Start, event, fn)
   }
 
-  hookEnd<K extends keyof E>(event: K, fn: E[K]) {
+  hookEnd<K extends keyof E>(event: K | HandlerProperties<E, K>, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Default, Priority.End, event, fn)
   }
 
-  preHook<K extends keyof E>(event: K, fn: E[K]) {
+  preHook<K extends keyof E>(event: K | HandlerProperties<E, K>, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Pre, Priority.Normal, event, fn)
   }
 
-  preHookStart<K extends keyof E>(event: K, fn: E[K]) {
+  preHookStart<K extends keyof E>(
+    event: K | HandlerProperties<E, K>,
+    fn: E[K]
+  ) {
     return this.hookGeneric(RoutineMode.Pre, Priority.Start, event, fn)
   }
 
-  preHookEnd<K extends keyof E>(event: K, fn: E[K]) {
+  preHookEnd<K extends keyof E>(event: K | HandlerProperties<E, K>, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Pre, Priority.End, event, fn)
   }
 
-  postHook<K extends keyof E>(event: K, fn: E[K]) {
+  postHook<K extends keyof E>(event: K | HandlerProperties<E, K>, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Post, Priority.Normal, event, fn)
   }
 
-  postHookStart<K extends keyof E>(event: K, fn: E[K]) {
+  postHookStart<K extends keyof E>(
+    event: K | HandlerProperties<E, K>,
+    fn: E[K]
+  ) {
     return this.hookGeneric(RoutineMode.Post, Priority.Start, event, fn)
   }
 
-  postHookEnd<K extends keyof E>(event: K, fn: E[K]) {
+  postHookEnd<K extends keyof E>(event: K | HandlerProperties<E, K>, fn: E[K]) {
     return this.hookGeneric(RoutineMode.Post, Priority.End, event, fn)
   }
 
@@ -190,4 +231,10 @@ abstract class HooterBase<E extends Events> {
   }
 }
 
-export { Priority, Handler, HooterBase as default }
+export {
+  Priority,
+  StoreItem,
+  HandlerProperties,
+  Handler,
+  HooterBase as default,
+}

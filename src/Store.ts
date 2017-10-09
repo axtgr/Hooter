@@ -1,49 +1,82 @@
-class Store {
-  private startItems: any[] = []
-  private items: any[] = []
-  private endItems: any[] = []
+import DagMap from 'dag-map'
+import { Events } from './events'
+import sortItems from './sortItems'
 
-  constructor(private match: (item: any, needle: any) => boolean) {}
+interface Item {
+  tags?: string[]
+  goesBefore?: string[] | '**'
+  goesAfter?: string[] | '**'
+}
 
-  prepend(item: any): void {
-    this.startItems.push(item)
+function isItem(value: any): value is Item {
+  return value && typeof value.key === 'string'
+}
+
+class Store<T extends Item> {
+  private items: T[] = []
+  private cache: { [key: string]: T[] }
+
+  constructor(private match: (item: T, needle?: T | string) => boolean) {
+    this.flushCache()
   }
 
-  add(item: any): void {
+  private flushCache() {
+    this.cache = Object.create(null)
+  }
+
+  add(item: T): void {
+    this.flushCache()
     this.items.push(item)
   }
 
-  append(item: any): void {
-    this.endItems.unshift(item)
-  }
-
-  get(needle?: any): any {
-    if (typeof needle === 'undefined') {
-      return this.startItems.concat(this.items, this.endItems)
+  get(needle?: T | string): T[] {
+    if (isItem(needle)) {
+      return this.items.filter(item => {
+        return this.match(item, needle)
+      })
     }
 
-    return this.startItems.concat(this.items, this.endItems).filter(item => {
-      return this.match(item, needle)
-    })
+    let key
+
+    if (typeof needle === 'undefined') {
+      key = '**'
+    } else if (typeof needle === 'string') {
+      key = needle
+    } else {
+      throw new Error(
+        'A needle must be a string or an item with a key property'
+      )
+    }
+
+    let { cache } = this
+
+    if (cache[key]) {
+      return cache[key].slice()
+    }
+
+    if (key === '**') {
+      cache[key] = this.items
+    } else {
+      cache[key] = this.items.filter(item => {
+        return this.match(item, needle)
+      })
+    }
+
+    cache[key] = sortItems(cache[key])
+    return cache[key]
   }
 
-  del(needle?: any): void {
-    if (typeof needle === 'undefined') {
-      this.startItems = []
+  del(needle?: T | string): void {
+    this.flushCache()
+
+    if (typeof needle === 'undefined' || needle === '**') {
       this.items = []
-      this.endItems = []
     } else {
-      this.startItems = this.startItems.filter(item => {
-        return !this.match(item, needle)
-      })
       this.items = this.items.filter(item => {
-        return !this.match(item, needle)
-      })
-      this.endItems = this.endItems.filter(item => {
         return !this.match(item, needle)
       })
     }
   }
 }
 
-export default Store
+export { Item, Store as default }

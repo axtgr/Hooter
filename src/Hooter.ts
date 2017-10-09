@@ -10,7 +10,6 @@ import HooterBase, { Priority, Handler } from './HooterBase'
 import HooterProxy, { Settings as HooterProxySettings } from './HooterProxy'
 import { Event, Events, RegisteredEvent, RegisteredEvents } from './events'
 import { throwHandler, tootHandler, hookHandler, forkHandler } from './effects'
-import sortPlugins from './sortPlugins'
 
 interface Settings<T extends Events> extends CorrieSettings {
   events?: RegisteredEvents<T>
@@ -21,12 +20,7 @@ interface State<T extends Events> {
   hooter: Hooter<T>
 }
 
-interface Plugin {
-  (): void
-  tags?: string[]
-  before?: string[]
-  after?: string[]
-}
+type Plugin = (...args: any[]) => void
 
 interface WrappedPlugin {
   (): void
@@ -45,7 +39,7 @@ const EFFECTS: EffectHandlers = Object.assign(DEFAULT_SETTINGS.effectHandlers, {
 })
 
 class Hooter<E extends Events> extends HooterBase<E> {
-  private store: HandlerStore
+  private store: HandlerStore<Handler<E, keyof E>>
   private plugins: WrappedPlugin[] = []
   private requiredPlugins: string[] = []
   private disabledPlugins: string[] = []
@@ -134,18 +128,6 @@ class Hooter<E extends Events> extends HooterBase<E> {
       throw new Error('A plugin must be a function')
     }
 
-    if (typeof plugin.tags !== 'undefined' && !Array.isArray(plugin.tags)) {
-      throw new Error("A plugin's tags must be an array of strings")
-    }
-
-    if (typeof plugin.before !== 'undefined' && !Array.isArray(plugin.before)) {
-      throw new Error("A plugin's before property must be an array of strings")
-    }
-
-    if (typeof plugin.after !== 'undefined' && !Array.isArray(plugin.after)) {
-      throw new Error("A plugin's after property must be an array of strings")
-    }
-
     let proxy = this.bind(plugin, settings)
     let wrappedPlugin: WrappedPlugin = proxy.wrap(plugin).bind(proxy)
     wrappedPlugin.raw = plugin
@@ -174,33 +156,28 @@ class Hooter<E extends Events> extends HooterBase<E> {
 
       return !isDisabled
     })
-    sortPlugins(plugins).forEach(plugin => plugin(...args))
+
+    plugins.forEach(plugin => plugin(...args))
   }
 
   getEvent(name: string): RegisteredEvent | undefined {
     return this.registeredEvents && this.registeredEvents[name]
   }
 
-  handlers(needle: Handler | string) {
+  handlers(needle: Handler<E, keyof E> | string) {
     return this.store.get(needle)
   }
 
-  _hookHandler(handler: Handler, priority: Priority) {
-    if (priority === Priority.Start) {
-      return this.store.prepend(handler)
-    } else if (priority === Priority.End) {
-      return this.store.append(handler)
-    } else {
-      return this.store.add(handler)
-    }
+  _hookHandler(handler: Handler<E, keyof E>) {
+    return this.store.add(handler)
   }
 
-  unhook(handler: Handler) {
-    this.store.del(handler)
+  unhook(needle: Handler<E, keyof E> | string) {
+    this.store.del(needle)
   }
 
   _tootEvent(event: Event) {
-    let handlers = this.handlers(event.name)
+    let handlers: Function[] = this.handlers(event.name)
 
     if (event.cb) {
       handlers.push(event.cb)

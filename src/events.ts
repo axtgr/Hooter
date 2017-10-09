@@ -28,10 +28,10 @@ function isUserEvent(obj: any): obj is UserEvent {
 }
 
 export {
+  Events,
   Event,
   UserEvent,
   RegisteredEvent,
-  Events,
   RegisteredEvents,
   isUserEvent,
 }
