@@ -44,6 +44,7 @@ class Hooter<E extends Events> extends HooterBase<E> {
   private requiredPlugins: string[] = []
   private disabledPlugins: string[] = []
   private registeredEvents?: RegisteredEvents<E>
+  private cache: { [key: string]: Function }
 
   started = false
   events: E = {} as E
@@ -51,6 +52,7 @@ class Hooter<E extends Events> extends HooterBase<E> {
 
   constructor(userSettings?: Settings<E>) {
     super()
+    this.flushCache()
 
     let effectHandlers: EffectHandlers = EFFECTS
     let state: State<E> = { hooter: this }
@@ -90,6 +92,10 @@ class Hooter<E extends Events> extends HooterBase<E> {
         return this.tootGeneric(name, args)
       }
     })
+  }
+
+  private flushCache() {
+    this.cache = Object.create(null)
   }
 
   proxy(settings?: HooterProxySettings): HooterProxy<E> {
@@ -169,29 +175,43 @@ class Hooter<E extends Events> extends HooterBase<E> {
   }
 
   _hookHandler(handler: Handler<E, keyof E>) {
+    this.flushCache()
     return this.store.add(handler)
   }
 
   unhook(needle: Handler<E, keyof E> | string) {
+    this.flushCache()
     this.store.del(needle)
   }
 
   _tootEvent(event: Event) {
+    let { cache } = this
+
+    if (!event.cb && this.cache[event.name]) {
+      return this.cache[event.name].apply(event, event.args)
+    }
+
     let handlers: Function[] = this.handlers(event.name)
 
     if (event.cb) {
       handlers.push(event.cb)
     }
 
+    let execution
+
     if (handlers.length === 0) {
       return
     } else if (event.mode === ExecutionMode.Auto) {
-      return this.corrie(...handlers).apply(event, event.args)
+      execution = this.corrie(...handlers)
     } else {
-      return (this.corrie as any)
-        [event.mode](...handlers)
-        .apply(event, event.args)
+      execution = (this.corrie as any)[event.mode](...handlers)
     }
+
+    if (!event.cb) {
+      this.cache[event.name] = execution
+    }
+
+    return execution.apply(event, event.args)
   }
 }
 
