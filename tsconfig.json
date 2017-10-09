@@ -6,8 +6,7 @@
     "target": "es6",
     "lib": [
       "es7",
-      "es2017",
-      "dom"
+      "es2017"
     ],
     "moduleResolution": "node",
     "sourceMap": true,
