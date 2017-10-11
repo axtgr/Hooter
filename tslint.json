@@ -32,7 +32,7 @@
       ["static-field", "static-method", "instance-field", "instance-method"]
     ],
     "no-empty": false,
-    "variable-name": [true, "check-format"],
+    "variable-name": [true, "check-format", "allow-pascal-case"],
     "array-type": [true, "array"],
     "no-shadowed-variable": false,
     "no-unused-expression": [true, "allow-fast-null-checks"],
@@ -53,7 +53,7 @@
     "member-access": false,
     "member-ordering": false,
     "no-empty": false,
-    "variable-name": [true, "check-format"],
+    "variable-name": [true, "check-format", "allow-pascal-case"],
     "no-shadowed-variable": false,
     "no-unused-expression": [true, "allow-fast-null-checks"],
     "prefer-for-of": false
