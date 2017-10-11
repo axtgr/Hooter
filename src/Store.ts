@@ -4,12 +4,8 @@ import sortItems from './sortItems'
 
 interface Item {
   tags?: string[]
-  goesBefore?: string[] | '**'
-  goesAfter?: string[] | '**'
-}
-
-function isItem(value: any): value is Item {
-  return value && typeof value.key === 'string'
+  goesBefore?: string[]
+  goesAfter?: string[]
 }
 
 class Store<T extends Item> {
@@ -30,7 +26,7 @@ class Store<T extends Item> {
   }
 
   get(needle?: T | string): T[] {
-    if (isItem(needle)) {
+    if (typeof needle !== 'string') {
       return this.items.filter(item => {
         return this.match(item, needle)
       })
@@ -62,7 +58,12 @@ class Store<T extends Item> {
       })
     }
 
-    cache[key] = sortItems(cache[key])
+    try {
+      cache[key] = sortItems(cache[key])
+    } catch (err) {
+      throw new Error(`Unable to sort items: ${err.message}`)
+    }
+
     return cache[key]
   }
 

@@ -111,11 +111,6 @@ function hookEnd(
   event: string | HandlerProperties<Events, string>,
   fn: Function
 ): HookEffect {
-  if (typeof event === 'string') {
-    event = { event, goesAfter: '**' }
-  } else {
-    event = Object.assign({}, event, { goesAfter: '**' })
-  }
   return {
     effect: 'hook',
     event,

@@ -1,80 +1,145 @@
 import DagMap from 'dag-map'
 import { Item } from './Store'
 
-interface TagMap {
-  [key: string]: string[]
+enum Priority {
+  Before = 'before',
+  Normal = 'normal',
+  After = 'after',
 }
 
-function sortItems<T extends Item>(items: T[]): T[] {
-  let map = new DagMap<T>()
-  let relations: TagMap = {}
-  let lowPriority: T[] = []
-  let highPriority: T[] = []
+interface TagObject {
+  before?: string[]
+  normal?: string[]
+  after?: string[]
+}
+
+interface TagMap {
+  [key: string]: TagObject
+}
+
+function makeItemKey(item: Item, index: number) {
+  let name = (item as any).name
+  return name ? `${index} (${name})` : String(index)
+}
+
+function mapTagsToItemKeys(items: Item[]) {
+  let result: TagMap = {}
 
   for (let i = 0; i < items.length; i++) {
     let item = items[i]
     let { tags, goesBefore, goesAfter } = item
-    let key = String(i)
-
-    if (
-      (goesBefore === '**' && goesAfter) ||
-      (goesAfter === '**' && goesBefore)
-    ) {
-      throw new Error(
-        'When "goesBefore" or "goesAfter" is "**", the other one must be undefined'
-      )
-    } else if (goesBefore === '**') {
-      lowPriority.push(item)
-      continue
-    } else if (goesAfter === '**') {
-      highPriority.unshift(item)
-      continue
-    }
+    let key = makeItemKey(item, i)
+    let allTags = ['**']
 
     if (tags) {
-      for (let j = 0; j < tags.length; j++) {
-        let tag = tags[j]
-        relations[tag] = relations[tag] || []
-        relations[tag].push(key)
+      allTags.push(...tags)
+    }
+
+    for (let j = 0; j < allTags.length; j++) {
+      let tag = allTags[j]
+      result[tag] = result[tag] || {}
+
+      if (goesBefore && goesBefore.includes(tag)) {
+        result[tag].before = result[tag].before || []
+        ;(result[tag].before as string[]).push(key)
+      } else if (goesAfter && goesAfter.includes(tag)) {
+        result[tag].after = result[tag].after || []
+        ;(result[tag].after as string[]).push(key)
+      } else {
+        result[tag].normal = result[tag].normal || []
+        ;(result[tag].normal as string[]).push(key)
       }
     }
   }
+
+  return result
+}
+
+function resolveDeps(
+  itemsByTag: TagMap,
+  key: string,
+  tags: string[] | undefined,
+  deps: string[],
+  priority: Priority
+) {
+  let result = []
+
+  for (let i = 0; i < deps.length; i++) {
+    let tagObject = itemsByTag[deps[i]]
+
+    // Skipping is for when an item both has a tag and also goesBefore/After it
+    let skip = deps[i] === '**' || (tags && tags.includes(deps[i]))
+
+    if (tagObject) {
+      let { before, normal, after } = tagObject
+
+      if (before && skip && priority !== Priority.Before) {
+        for (let j = 0; j < before.length; j++) {
+          if (key !== before[j]) {
+            result.push(before[j])
+          }
+        }
+      }
+
+      if (normal) {
+        for (let j = 0; j < normal.length; j++) {
+          if (key !== normal[j]) {
+            result.push(normal[j])
+          }
+        }
+      }
+
+      if (after) {
+        let skipAfter = skip && priority === Priority.After
+        for (let j = after.length - 1; j >= 0; j--) {
+          if (key !== after[j]) {
+            result.push(after[j])
+          } else if (skipAfter) {
+            break
+          }
+        }
+      }
+    }
+  }
+
+  return result
+}
+
+function createDagMapForItems<T extends Item>(items: T[]) {
+  let itemsByTag: TagMap = mapTagsToItemKeys(items)
+  let result = new DagMap<T>()
 
   for (let i = 0; i < items.length; i++) {
     let item = items[i]
-    let key = String(i)
-    let { goesBefore, goesAfter } = item
-    let realBefore: string[] = []
-    let realAfter: string[] = []
-
-    if (goesBefore === '**' || goesAfter === '**') {
-      continue
-    }
+    let { tags, goesBefore, goesAfter } = item
+    let key = makeItemKey(item, i)
 
     if (goesBefore) {
-      for (let j = 0; j < goesBefore.length; j++) {
-        let tag = goesBefore[j]
-        let tagItems = relations[tag] as string[]
-        relations[tag] && realBefore.push(...tagItems)
-      }
+      // tslint:disable-next-line:prettier
+      goesBefore = resolveDeps(itemsByTag, key, tags, goesBefore, Priority.Before)
     }
 
     if (goesAfter) {
-      for (let j = 0; j < goesAfter.length; j++) {
-        let tag = goesAfter[j]
-        let tagItems = relations[tag] as string[]
-        relations[tag] && realAfter.push(...tagItems)
-      }
+      goesAfter = resolveDeps(itemsByTag, key, tags, goesAfter, Priority.After)
     }
 
-    map.add(key, item, realBefore, realAfter)
+    result.add(key, item, goesBefore, goesAfter)
   }
 
-  let result: T[] = lowPriority
+  return result
+}
+
+function dagMapToArray<T extends Item>(map: DagMap<T>) {
+  let result: T[] = []
   map.each((key, value) => {
     value && result.push(value)
   })
-  return result.concat(highPriority)
+  return result
 }
 
-export { sortItems as default }
+function sortItems<T extends Item>(items: T[]): T[] {
+  let map = createDagMapForItems<T>(items)
+  return dagMapToArray(map)
+}
+
+export { Item, sortItems as default }

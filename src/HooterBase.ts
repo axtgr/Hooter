@@ -114,9 +114,13 @@ abstract class HooterBase<E extends Events> {
     let handler = this._createHandler(routineMode, event, fn)
 
     if (priority === Priority.Start) {
-      handler.goesBefore = '**'
+      handler.goesBefore = handler.goesBefore
+        ? ['**'].concat(handler.goesBefore)
+        : ['**']
     } else if (priority === Priority.End) {
-      handler.goesAfter = '**'
+      handler.goesAfter = handler.goesAfter
+        ? ['**'].concat(handler.goesAfter)
+        : ['**']
     }
 
     this._hookHandler(handler)
