@@ -98,6 +98,7 @@ abstract class HooterBase<E extends Events> {
       )
     }
 
+    tags.push('event:' + handler.event)
     handler.tags = tags
     handler.unhook = () => this.unhook(handler)
     return handler
@@ -112,15 +113,16 @@ abstract class HooterBase<E extends Events> {
     fn?: E[K]
   ) {
     let handler = this._createHandler(routineMode, event, fn)
+    let eventTag = 'event:' + handler.event
 
     if (priority === Priority.Start) {
       handler.goesBefore = handler.goesBefore
-        ? ['**'].concat(handler.goesBefore)
-        : ['**']
+        ? [eventTag].concat(handler.goesBefore)
+        : [eventTag]
     } else if (priority === Priority.End) {
       handler.goesAfter = handler.goesAfter
-        ? ['**'].concat(handler.goesAfter)
-        : ['**']
+        ? [eventTag].concat(handler.goesAfter)
+        : [eventTag]
     }
 
     this._hookHandler(handler)
