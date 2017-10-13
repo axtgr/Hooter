@@ -22,16 +22,33 @@ interface ResultRoutine<E extends Events> extends Routine<E> {
   value: any
 }
 
+function setRoutineName(routine: Routine<any>, name?: string) {
+  let ownerName = routine.owner && routine.owner.name
+
+  if (ownerName) {
+    name = name ? `${ownerName}: ${name}` : `${ownerName}: unnamedRoutine`
+  }
+
+  if (name) {
+    Object.defineProperty(routine, 'name', {
+      value: name,
+      writable: true,
+    })
+  }
+}
+
 function createResultRoutine<E extends Events>(
   hooter: HooterBase<E>
 ): ResultRoutine<E> {
-  let routine = function* observableResult(...args: any[]): any {
+  let routine = function*(...args: any[]): any {
     let value: any = yield { effect: 'next', args }
     ;(routine as ResultRoutine<E>).value = value
     return value
   } as ResultRoutine<E>
   routine.hooter = hooter
   routine.owner = (hooter as HooterProxy<E>).owner
+
+  setRoutineName(routine, 'observeResult')
 
   return routine
 }
@@ -94,19 +111,7 @@ function createRoutine<E extends Events>(
   routine.owner = (hooter as HooterProxy<E>).owner
   routine.fn = fn
 
-  let ownerName = routine.owner && routine.owner.name
-  let name = fn.name
-
-  if (ownerName) {
-    name = name ? `${ownerName}: ${name}` : `${ownerName}: unnamedRoutine`
-  }
-
-  if (name) {
-    Object.defineProperty(routine, 'name', {
-      value: name,
-      writable: true,
-    })
-  }
+  setRoutineName(routine, fn.name)
 
   return routine
 }
