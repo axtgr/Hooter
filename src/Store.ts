@@ -12,7 +12,10 @@ class Store<T extends Item> {
   private items: T[] = []
   private cache: { [key: string]: T[] }
 
-  constructor(private match: (item: T, needle?: T | string) => boolean) {
+  constructor(
+    private match: (item: T, needle?: T | string) => boolean,
+    private defaultSort?: (itemA: T, itemB: T) => number
+  ) {
     this.flushCache()
   }
 
@@ -23,6 +26,10 @@ class Store<T extends Item> {
   add(item: T): void {
     this.flushCache()
     this.items.push(item)
+
+    if (this.defaultSort) {
+      this.items.sort(this.defaultSort)
+    }
   }
 
   get(needle?: T | string): T[] {

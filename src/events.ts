@@ -15,6 +15,7 @@ interface UserEvent {
 
 interface RegisteredEvent {
   mode: ExecutionMode
+  tags?: string[]
 }
 
 interface Events {
