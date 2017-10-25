@@ -1,4 +1,3 @@
-import wildcardMatch = require('wildcard-match')
 import corrie = require('corrie')
 import { ExecutionMode } from 'corrie'
 import HooterProxy from './HooterProxy'
@@ -35,7 +34,7 @@ interface Handler<E extends Events, K extends keyof E>
 }
 
 function match(a: string, b: string) {
-  return wildcardMatch('.', a, b)
+  return a === b || a === '**' || b === '**'
 }
 
 const DEFAULT_EXECUTION_MODE = ExecutionMode.Auto
