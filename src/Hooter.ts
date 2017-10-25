@@ -273,5 +273,6 @@ export {
   PluginSettings,
   Plugin,
   WrappedPlugin,
+  HooterProxy,
   Hooter as default,
 }
