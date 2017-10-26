@@ -61,7 +61,7 @@ class Store<T extends Item> {
     try {
       cache[key] = sortItems(cache[key])
     } catch (err) {
-      throw new Error(`Unable to sort items: ${err.message}`)
+      throw new Error(`Unable to sort items for "${key}": ${err.message}`)
     }
 
     return cache[key]
