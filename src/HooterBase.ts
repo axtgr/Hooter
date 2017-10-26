@@ -71,7 +71,7 @@ abstract class HooterBase<E extends Events> {
 
   abstract unhook(handler: Handler<E, keyof E> | string): void
 
-  private _createHandler<K extends keyof E>(
+  protected createHandler<K extends keyof E>(
     routineMode: RoutineMode,
     event: K | HandlerProperties<E, K>,
     fn?: E[K]
@@ -111,7 +111,7 @@ abstract class HooterBase<E extends Events> {
     event: K | HandlerProperties<E, K>,
     fn?: E[K]
   ) {
-    let handler = this._createHandler(routineMode, event, fn)
+    let handler = this.createHandler(routineMode, event, fn)
     let eventTag = 'event:' + handler.event
 
     if (priority === Priority.Start) {
