@@ -78,8 +78,7 @@ class Hooter<E extends Events> extends HooterBase<E> {
     this.settings = settings
     this.corrie = corrie(settings)
     this.registeredEventsOnly = !!settings.registeredEventsOnly
-
-    let sortByEventTags = false
+    this.store = new HandlerStore(this.matchHandler)
 
     if (settings.events) {
       this.registeredEvents = settings.events
@@ -88,64 +87,12 @@ class Hooter<E extends Events> extends HooterBase<E> {
         this.events[name] = (...args: any[]) => {
           return this.tootGeneric(name, args)
         }
-
-        if (registeredEvent.tags) {
-          sortByEventTags = true
-        }
       })
-    }
-
-    if (sortByEventTags) {
-      this.store = new HandlerStore(this.matchHandler, (a, b) => {
-        return this.sortItemsByEventTags(a, b)
-      })
-    } else {
-      this.store = new HandlerStore(this.matchHandler)
     }
   }
 
   private flushCache() {
     this.cache = Object.create(null)
-  }
-
-  private sortItemsByEventTags(
-    itemA: Handler<E, keyof E>,
-    itemB: Handler<E, keyof E>
-  ): number {
-    let { event } = itemA
-    let registeredEvent = (this.registeredEvents as RegisteredEvents<E>)[event]
-    let tagsA = itemA.tags
-    let tagsB = itemB.tags
-
-    if (
-      event !== itemB.event ||
-      !registeredEvent ||
-      !registeredEvent.tags ||
-      !tagsA ||
-      !tagsB ||
-      !tagsA.length ||
-      !tagsB.length
-    ) {
-      return 0
-    }
-
-    let eventTags = registeredEvent.tags
-    let maxAIndex = 0
-    let maxBIndex = 0
-
-    for (let i = 0; i < eventTags.length; i++) {
-      let tag = eventTags[i]
-
-      if (tagsA.includes(tag) && i > maxAIndex) {
-        maxAIndex = i
-      }
-
-      if (tagsB.includes(tag) && i > maxBIndex) {
-        maxBIndex = i
-      }
-    }
-
-    return maxAIndex - maxBIndex
   }
 
   proxy(settings?: HooterProxySettings): HooterProxy<E> {
