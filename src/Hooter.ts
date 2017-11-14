@@ -83,7 +83,7 @@ class Hooter<E extends Events> extends HooterBase<E> {
     if (settings.events) {
       this.registeredEvents = settings.events
 
-      Object.entries(settings.events).forEach(([name, registeredEvent]) => {
+      Object.keys(settings.events).forEach(name => {
         this.events[name] = (...args: any[]) => {
           return this.tootGeneric(name, args)
         }
